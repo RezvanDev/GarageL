@@ -9,13 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           script: |
-            cd ~/my-garage
+            # Navigate to project directory (update path if different on server)
+            cd ~/GarageL || cd ~/my-garage
+            
+            # Pull latest changes
             git pull origin main
-            # Only rebuild and restart containers if pulled changes affect code
+            
+            # Restart containers
             docker compose up -d --build
