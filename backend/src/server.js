@@ -20,10 +20,10 @@ const PORT = process.env.PORT || 5001;
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
-    'https://guidex.pw',
-    'https://www.guidex.pw',
-    'https://guidex.pw:8443',
-    'https://www.guidex.pw:8443',
+    'https://nexaicall.space',
+    'https://www.nexaicall.space',
+    'https://nexaicall.space:8443',
+    'https://www.nexaicall.space:8443',
     process.env.ALLOWED_ORIGIN
 ].filter(Boolean);
 
