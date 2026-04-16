@@ -16,24 +16,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            echo "Current user: $(whoami)"
-            echo "Current directory: $(pwd)"
+            # Navigate to project directory
+            cd /root/GarageL
             
-            # Try to find the directory automatically if fixed paths fail
-            PROJECT_DIR=$(find ~ -name docker-compose.yml -exec dirname {} \; | grep "my-garage" | head -n 1)
+            # Discard manual changes on server to avoid git pull conflicts
+            git reset --hard
             
-            if [ -z "$PROJECT_DIR" ]; then
-                PROJECT_DIR=$(find /root -name docker-compose.yml -exec dirname {} \; | grep "my-garage" | head -n 1 2>/dev/null)
-            fi
+            # Pull latest changes from GitHub
+            git pull origin main
             
-            if [ -n "$PROJECT_DIR" ]; then
-                echo "Found project directory at: $PROJECT_DIR"
-                cd "$PROJECT_DIR"
-                git reset --hard
-                git pull origin main
-                docker-compose up -d --build
-            else
-                echo "ERROR: Could not find my-garage directory with docker-compose.yml"
-                ls -la ~
-                exit 1
-            fi
+            # Restart containers using docker-compose (v1 compatibility)
+            docker-compose up -d --build
