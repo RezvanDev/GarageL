@@ -25,5 +25,5 @@ jobs:
             # Pull latest changes from GitHub
             git pull origin main
             
-            # Restart containers using docker-compose (v1 compatibility)
-            docker-compose up -d --build
+            # Restart containers using modern docker compose (v2)
+            docker compose up -d --build
