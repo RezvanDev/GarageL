@@ -16,11 +16,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            # Navigate to project directory (update path if different on server)
-            cd ~/GarageL || cd ~/my-garage
+            # Navigate to project directory (using absolute path for root)
+            cd /root/my-garage || cd ~/my-garage
             
-            # Pull latest changes
+            # Discard manual changes on server to avoid git pull conflicts
+            git reset --hard
+            
+            # Pull latest changes from GitHub
             git pull origin main
             
-            # Restart containers
-            docker compose up -d --build
+            # Restart containers using docker-compose (v1 compatibility)
+            docker-compose up -d --build

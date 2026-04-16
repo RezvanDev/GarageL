@@ -56,11 +56,11 @@ const allowedOrigins = [
 
 ```bash
 sudo apt install certbot -y
-sudo certbot certonly --standalone -d ваш-домен.ru -d www.ваш-домен.ru
+sudo certbot certonly --standalone -d nexaicall.space -d www.nexaicall.space
 ```
 Сертификаты сохранятся в папки:
-*   `/etc/letsencrypt/live/ваш-домен.ru/fullchain.pem`
-*   `/etc/letsencrypt/live/ваш-домен.ru/privkey.pem`
+*   `/etc/letsencrypt/live/nexaicall.space/fullchain.pem`
+*   `/etc/letsencrypt/live/nexaicall.space/privkey.pem`
 
 ---
 
