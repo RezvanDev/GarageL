@@ -74,6 +74,13 @@ class User {
         );
     }
 
+    static async linkTelegram(userId, chatId) {
+        await db.query(
+            'UPDATE users SET telegram_chat_id = $1, telegram_sync_token = NULL WHERE id = $2',
+            [chatId, userId]
+        );
+    }
+
     static async comparePassword(candidatePassword, userPassword) {
         return await bcrypt.compare(candidatePassword, userPassword);
     }

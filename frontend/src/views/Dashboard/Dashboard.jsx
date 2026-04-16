@@ -48,18 +48,35 @@ export const Dashboard = ({ onNavigate, user }) => {
                     className="view-card" 
                     style={{ background: 'rgba(0, 136, 204, 0.15)', borderColor: 'rgba(0, 136, 204, 0.3)' }}
                     onClick={async () => {
-                        const newWindow = window.open('', '_blank');
-                        try {
-                            const res = await api.auth.getTelegramToken();
-                            if (res.data?.link && newWindow) {
-                                newWindow.location.href = res.data.link;
-                            } else if (newWindow) {
-                                newWindow.close();
+                        const tgData = window.Telegram?.WebApp?.initData;
+                        
+                        if (tgData) {
+                            // If in Telegram Web App, sync instantly
+                            try {
+                                const res = await api.auth.syncTelegramWebApp(tgData);
+                                if (res.status === 'success') {
+                                    alert('Аккаунт успешно привязан!');
+                                    window.location.reload(); // Refresh to update user state
+                                }
+                            } catch (err) {
+                                console.error('WebApp Sync Error:', err);
+                                alert('Ошибка при синхронизации. Попробуйте обновить страницу.');
                             }
-                        } catch (err) {
-                            if (newWindow) newWindow.close();
-                            console.error('Telegram Link Error:', err);
-                            alert('Ошибка при получении ссылки. Попробуйте позже.');
+                        } else {
+                            // If in regular browser, use the link method
+                            const newWindow = window.open('', '_blank');
+                            try {
+                                const res = await api.auth.getTelegramToken();
+                                if (res.data?.link && newWindow) {
+                                    newWindow.location.href = res.data.link;
+                                } else if (newWindow) {
+                                    newWindow.close();
+                                }
+                            } catch (err) {
+                                if (newWindow) newWindow.close();
+                                console.error('Telegram Link Error:', err);
+                                alert('Ошибка при получении ссылки. Попробуйте позже.');
+                            }
                         }
                     }}
                 >

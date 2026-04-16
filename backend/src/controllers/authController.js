@@ -3,6 +3,7 @@ const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const Order = require('../models/orderModel');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 
 exports.updateRole = async (req, res, next) => {
@@ -163,6 +164,46 @@ exports.getTelegramToken = async (req, res, next) => {
                 token,
                 link
             }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.syncTelegramWebApp = async (req, res, next) => {
+    try {
+        const { initData } = req.body;
+        if (!initData) return next(new AppError('No initData provided', 400));
+
+        // 1. Verify Telegram Hash
+        const token = process.env.TELEGRAM_BOT_TOKEN;
+        const urlParams = new URLSearchParams(initData);
+        const hash = urlParams.get('hash');
+        urlParams.delete('hash');
+        
+        const dataCheckString = Array.from(urlParams.entries())
+            .sort((a, b) => a[0].localeCompare(b[0]))
+            .map(([key, value]) => `${key}=${value}`)
+            .join('\n');
+
+        const secretKey = crypto.createHmac('sha256', 'WebAppData').update(token).digest();
+        const calculatedHash = crypto.createHmac('sha256', secretKey).update(dataCheckString).digest('hex');
+
+        if (calculatedHash !== hash) {
+            return next(new AppError('Invalid Telegram data hash', 403));
+        }
+
+        // 2. Extract User Data
+        const userData = JSON.parse(urlParams.get('user'));
+        const telegramChatId = userData.id;
+
+        // 3. Link account
+        await User.linkTelegram(req.user.id, telegramChatId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Account linked successfully via Web App',
+            telegram_chat_id: telegramChatId
         });
     } catch (err) {
         next(err);
