@@ -37,7 +37,7 @@ class User {
 
     static async findById(id) {
         const result = await db.query(
-            'SELECT u.id, u.phone, u.name, u.user_code, u.allowed_brands, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = $1',
+            'SELECT u.id, u.phone, u.name, u.user_code, u.allowed_brands, u.telegram_chat_id, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = $1',
             [id]
         );
         return result.rows[0];

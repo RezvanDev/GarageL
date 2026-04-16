@@ -4,7 +4,10 @@ import { Package, ClipboardList, ShoppingCart, PenTool, Bell } from 'lucide-reac
 import { GlassCard } from '../../components/common/UI';
 import { api } from '../../services/api';
 
-export const Dashboard = ({ onNavigate }) => (
+export const Dashboard = ({ onNavigate, user }) => {
+    const isTelegramConnected = !!user?.telegram_chat_id;
+
+    return (
     <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -42,8 +45,12 @@ export const Dashboard = ({ onNavigate }) => (
 
             <GlassCard 
                 className="view-card" 
-                style={{ background: 'rgba(0, 136, 204, 0.15)', borderColor: 'rgba(0, 136, 204, 0.3)' }}
+                style={{ 
+                    background: isTelegramConnected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0, 136, 204, 0.15)', 
+                    borderColor: isTelegramConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 136, 204, 0.3)' 
+                }}
                 onClick={async () => {
+                    if (isTelegramConnected) return;
                     try {
                         const res = await api.auth.getTelegramToken();
                         if (res.data?.link) {
@@ -55,10 +62,11 @@ export const Dashboard = ({ onNavigate }) => (
                     }
                 }}
             >
-                <Bell size={48} color="#0088cc" />
-                <h3>Уведомления в Telegram</h3>
-                <p>Получайте сообщения о новых офферах и статусах</p>
+                <Bell size={48} color={isTelegramConnected ? '#10b981' : '#0088cc'} />
+                <h3>{isTelegramConnected ? 'Уведомления активны ✅' : 'Уведомления в Telegram'}</h3>
+                <p>{isTelegramConnected ? 'Вы получаете сообщения о заказах' : 'Получайте сообщения о новых офферах и статусах'}</p>
             </GlassCard>
         </div>
     </motion.div>
-);
+    );
+};

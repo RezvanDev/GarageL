@@ -101,7 +101,7 @@ export default function App() {
 
             <main id="app-content">
               <AnimatePresence mode="wait">
-                {view === 'dashboard' && <Dashboard key="dash" onNavigate={navigate} />}
+                {view === 'dashboard' && <Dashboard key="dash" onNavigate={navigate} user={user} />}
                 {view === 'catalog' && (
                   <Catalog
                     key="cat"
