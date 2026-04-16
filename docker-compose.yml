@@ -22,6 +22,11 @@ services:
       JWT_SECRET: ${JWT_SECRET:-garage_super_secret_key_2026}
       NODE_ENV: production
       PORT: 5001
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_WEBHOOK_URL: ${TELEGRAM_WEBHOOK_URL}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
+    env_file:
+      - .env
     depends_on:
       - db
     volumes:
