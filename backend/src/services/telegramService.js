@@ -5,13 +5,19 @@ class TelegramService {
     constructor() {
         this.token = process.env.TELEGRAM_BOT_TOKEN;
         if (this.token) {
-            // In production with webhooks, we don't start polling
-            this.bot = new TelegramBot(this.token);
+            // If webhook URL is missing, fall back to polling for testing
+            const usePolling = !process.env.TELEGRAM_WEBHOOK_URL || process.env.TELEGRAM_POLLING === 'true';
+            this.bot = new TelegramBot(this.token, { polling: usePolling });
+            
+            if (usePolling) {
+                console.log('Telegram Bot started in POLLING mode');
+                this.bot.on('message', (msg) => this.handleWebhook({ message: msg }));
+            }
         }
     }
 
     async initWebhook() {
-        if (!this.bot || !process.env.TELEGRAM_WEBHOOK_URL) return;
+        if (!this.bot || !process.env.TELEGRAM_WEBHOOK_URL || process.env.TELEGRAM_POLLING === 'true') return;
         try {
             const url = `${process.env.TELEGRAM_WEBHOOK_URL}/api/v1/telegram/webhook`;
             await this.bot.setWebHook(url);
