@@ -42,7 +42,8 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ phone, password, name })
             }),
-        getTelegramToken: () => api.request('/auth/telegram-token')
+        getTelegramToken: () => api.request('/auth/telegram-token'),
+        getMe: () => api.request('/auth/me')
     },
 
     products: {
