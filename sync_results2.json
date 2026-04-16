@@ -1,0 +1,127 @@
+[
+  {
+    "id": "mg",
+    "name": "MG",
+    "componentName": "MGIcon",
+    "models": [
+      "ZS",
+      "CYBERSTER",
+      "HS",
+      "7"
+    ]
+  },
+  {
+    "id": "polestar",
+    "name": "Polestar",
+    "componentName": "PolestarIcon",
+    "models": [
+      "POLESTAR 2",
+      "POLESTAR 4"
+    ]
+  },
+  {
+    "id": "porsche",
+    "name": "Porsche",
+    "componentName": "PorscheIcon",
+    "models": [
+      "911",
+      "MACAN",
+      "CAYENNE",
+      "PANAMERA",
+      "TAYCAN"
+    ]
+  },
+  {
+    "id": "skoda",
+    "name": "Skoda",
+    "componentName": "SkodaIcon",
+    "models": [
+      "KODIAQ",
+      "OCTAVIA",
+      "SUPERB"
+    ]
+  },
+  {
+    "id": "tank",
+    "name": "Tank",
+    "componentName": "TankIcon",
+    "models": [
+      "TANK 300"
+    ]
+  },
+  {
+    "id": "tesla",
+    "name": "Tesla",
+    "componentName": "TeslaIcon",
+    "models": [
+      "MODEL 3",
+      "MODEL Y",
+      "MODEL S",
+      "MODEL X",
+      "MODEL S PLAID"
+    ]
+  },
+  {
+    "id": "toyota",
+    "name": "Toyota",
+    "componentName": "ToyotaIcon",
+    "models": [
+      "LC 120",
+      "LC 150",
+      "LC 200",
+      "LC 300",
+      "PRADO 250",
+      "CAMRY",
+      "AVALON",
+      "CROWN",
+      "COROLLA",
+      "SEQUIOA",
+      "RAV 4",
+      "HIGHLANDER"
+    ]
+  },
+  {
+    "id": "volkswagen",
+    "name": "Volkswagen",
+    "componentName": "VolkswagenIcon",
+    "models": [
+      "ID 4",
+      "ID 6",
+      "CADDY",
+      "ARTEON",
+      "PASSAT SS"
+    ]
+  },
+  {
+    "id": "volvo",
+    "name": "Volvo",
+    "componentName": "VolvoIcon",
+    "models": [
+      "XC 60",
+      "XC 90",
+      "T60"
+    ]
+  },
+  {
+    "id": "xiaomi",
+    "name": "Xiaomi",
+    "componentName": "XiaomiIcon",
+    "models": [
+      "SU 7",
+      "SU7 ULTRA",
+      "YU 7",
+      "YU 7 MAX"
+    ]
+  },
+  {
+    "id": "xpeng",
+    "name": "Xpeng",
+    "componentName": "XpengIcon",
+    "models": [
+      "XPENG G9",
+      "XPENG MONA M03",
+      "XPENG P7+",
+      "XPENG G3I"
+    ]
+  }
+]

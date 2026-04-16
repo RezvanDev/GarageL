@@ -1,0 +1,409 @@
+[
+  {
+    "id": "aito",
+    "name": "AITO",
+    "componentName": "AITOIcon",
+    "models": [
+      "M9",
+      "M8",
+      "M7",
+      "M6"
+    ]
+  },
+  {
+    "id": "zeekr",
+    "name": "Zeekr",
+    "componentName": "ZeekrIcon",
+    "models": [
+      "001 2025",
+      "001 2026",
+      "007",
+      "X",
+      "007 GT",
+      "7X",
+      "009",
+      "9X"
+    ]
+  },
+  {
+    "id": "voyah",
+    "name": "Voyah",
+    "componentName": "VoyahIcon",
+    "models": [
+      "Free c 2021",
+      "Free c 2023",
+      "Free c 2025",
+      "Taishan",
+      "Dream",
+      "Passion",
+      "Courage"
+    ]
+  },
+  {
+    "id": "byd",
+    "name": "BYD",
+    "componentName": "BYDIcon",
+    "models": [
+      "ATTO 8",
+      "SEAL 6",
+      "SEALION 7",
+      "YUAN UP",
+      "SEAGULL",
+      "e2",
+      "CHAZOR Champion",
+      "SONG PRO DM-i Champion",
+      "SONG PLUS EV Champion",
+      "HAN"
+    ]
+  },
+  {
+    "id": "bmw",
+    "name": "BMW",
+    "componentName": "BMWIcon",
+    "models": [
+      "1-Series",
+      "2-Series",
+      "3-Series",
+      "4-Series",
+      "5-Series",
+      "6-Series Gran Turismo",
+      "7-Series",
+      "iX1",
+      "iX3",
+      "X1",
+      "X2",
+      "X3",
+      "X4",
+      "X5",
+      "X6",
+      "X7"
+    ]
+  },
+  {
+    "id": "chery",
+    "name": "Chery",
+    "componentName": "CheryIcon",
+    "models": [
+      "TIGGO 7PRO",
+      "TIGGO 8 PRO-PRO MAX",
+      "TIGGO 2 PRO",
+      "ARIZZO 6 PRO",
+      "ARIZZO 8 HYBRID"
+    ]
+  },
+  {
+    "id": "avatr",
+    "name": "Avatr",
+    "componentName": "AvatrIcon",
+    "models": [
+      "06",
+      "07",
+      "11",
+      "12"
+    ]
+  },
+  {
+    "id": "baic",
+    "name": "BAIC",
+    "componentName": "BAICIcon",
+    "models": [
+      "BJ 30",
+      "BJ 40",
+      "BJ 60"
+    ]
+  },
+  {
+    "id": "bestune",
+    "name": "Bestune",
+    "componentName": "BestuneIcon",
+    "models": [
+      "T55",
+      "T99",
+      "B70"
+    ]
+  },
+  {
+    "id": "bmwm",
+    "name": "BMW M",
+    "componentName": "BMWMIcon",
+    "models": [
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M8",
+      "X5M",
+      "X6M",
+      "X7M",
+      "XM"
+    ]
+  },
+  {
+    "id": "cadillac",
+    "name": "Cadillac",
+    "componentName": "CadillacIcon",
+    "models": [
+      "ESCALADE",
+      "ESCALADE LONG",
+      "ESCALADE V SERIES"
+    ]
+  },
+  {
+    "id": "changan",
+    "name": "Changan",
+    "componentName": "ChanganIcon",
+    "models": [
+      "UNI T",
+      "UNI K",
+      "UNI V",
+      "CS 55+"
+    ]
+  },
+  {
+    "id": "chevrolet",
+    "name": "Chevrolet",
+    "componentName": "ChevroletIcon",
+    "models": [
+      "COBALT MCM",
+      "DAMAS",
+      "DAMAS MOVE",
+      "LABO",
+      "ONIX",
+      "TRACKER",
+      "EQUINOX",
+      "TRAVERSE",
+      "TRAVERSE Z71",
+      "TAHOE RST",
+      "TAHOE HIGH COUNTRY",
+      "MALIBU XL",
+      "CAPTIVA 5"
+    ]
+  },
+  {
+    "id": "deepal",
+    "name": "Deepal",
+    "componentName": "DeepalIcon",
+    "models": [
+      "S07",
+      "G318",
+      "SL03",
+      "S05",
+      "S09"
+    ]
+  },
+  {
+    "id": "dongfeng",
+    "name": "Dongfeng",
+    "componentName": "DongfengIcon",
+    "models": [
+      "EP 008",
+      "EP 007",
+      "AELOUS SHINE GS",
+      "NAMMI 06",
+      "AELOUS S8 HYBRID",
+      "AELOUS L7",
+      "SHINE",
+      "PALADIN"
+    ]
+  },
+  {
+    "id": "exeed",
+    "name": "Exeed",
+    "componentName": "ExeedIcon",
+    "models": [
+      "LX",
+      "TXL",
+      "VX"
+    ]
+  },
+  {
+    "id": "audi",
+    "name": "Audi",
+    "componentName": "AudiIcon",
+    "models": [
+      "RS6",
+      "A8L",
+      "RSQ8",
+      "A7"
+    ]
+  },
+  {
+    "id": "gac",
+    "name": "GAC",
+    "componentName": "GACIcon",
+    "models": [
+      "AION V",
+      "AION S MAX",
+      "AION S +",
+      "AION Y"
+    ]
+  },
+  {
+    "id": "geely",
+    "name": "Geely",
+    "componentName": "GeelyIcon",
+    "models": [
+      "MONJARO",
+      "COOLRAY",
+      "GALAXY",
+      "EX5 EM-I",
+      "EX5 EV"
+    ]
+  },
+  {
+    "id": "genesis",
+    "name": "Genesis",
+    "componentName": "GenesisIcon",
+    "models": [
+      "GV70",
+      "G70",
+      "GV80",
+      "G80",
+      "GV80 COUPE",
+      "G90"
+    ]
+  },
+  {
+    "id": "gwm",
+    "name": "GWM",
+    "componentName": "GWMIcon",
+    "models": [
+      "HAVAL H9",
+      "HAVAL H6",
+      "HAVAL DARGO",
+      "HAVAL JOLION",
+      "HAVAL M6",
+      "WINGLE 7"
+    ]
+  },
+  {
+    "id": "honda",
+    "name": "Honda",
+    "componentName": "HondaIcon",
+    "models": [
+      "CRIDER",
+      "E NS1"
+    ]
+  },
+  {
+    "id": "hongqi",
+    "name": "Hongqi",
+    "componentName": "HongqiIcon",
+    "models": [
+      "EQM 5",
+      "HS5",
+      "EHS9",
+      "H5 REST",
+      "H9"
+    ]
+  },
+  {
+    "id": "hyundai",
+    "name": "Hyundai",
+    "componentName": "HyundaiIcon",
+    "models": [
+      "SONATA",
+      "SANTA FE",
+      "TUCSON",
+      "ELANTRA",
+      "PALISADE",
+      "I30",
+      "GRANDEUR",
+      "STARIA"
+    ]
+  },
+  {
+    "id": "jetour",
+    "name": "Jetour",
+    "componentName": "JetourIcon",
+    "models": [
+      "X50",
+      "X70",
+      "X70 PLUS",
+      "X90",
+      "X95 PLUS",
+      "DASHING",
+      "T2",
+      "SOUAEST S07",
+      "SOUAEST S09"
+    ]
+  },
+  {
+    "id": "kia",
+    "name": "Kia",
+    "componentName": "KiaIcon",
+    "models": [
+      "SONET",
+      "SELTOS",
+      "SORENTO",
+      "SPORTAGE",
+      "STINGER",
+      "CERARO",
+      "CARENS",
+      "K5 TURBO",
+      "K8",
+      "K9",
+      "EV6",
+      "EV9"
+    ]
+  },
+  {
+    "id": "lexus",
+    "name": "Lexus",
+    "componentName": "LexusIcon",
+    "models": [
+      "GX460",
+      "LX600",
+      "ES 350",
+      "IS 250",
+      "RX 350",
+      "TX500"
+    ]
+  },
+  {
+    "id": "maybach",
+    "name": "Maybach",
+    "componentName": "MaybachIcon",
+    "models": [
+      "W222",
+      "W223",
+      "GLS 600"
+    ]
+  },
+  {
+    "id": "mercedesamg",
+    "name": "Mercedes-AMG",
+    "componentName": "MercedesAMGIcon",
+    "models": [
+      "C63",
+      "E63",
+      "G63",
+      "GT 63",
+      "AMG GT",
+      "GLE 63",
+      "GLS 63",
+      "S63",
+      "GT43",
+      "GT53",
+      "C43",
+      "E53",
+      "G55",
+      "SL63",
+      "SL55",
+      "GLE 53"
+    ]
+  },
+  {
+    "id": "mercedesbenz",
+    "name": "Mercedes-Benz",
+    "componentName": "MercedesBenzIcon",
+    "models": [
+      "C-Class",
+      "E-Class",
+      "S-Class",
+      "GLE",
+      "GLC",
+      "G-Class"
+    ]
+  }
+]

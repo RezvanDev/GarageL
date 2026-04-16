@@ -1,0 +1,46 @@
+{
+  "hash": "e9ab4337",
+  "configHash": "0da8a4c4",
+  "lockfileHash": "0b0cd2ea",
+  "browserHash": "ca101782",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "3b100efb",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "45ec85f2",
+      "needsInterop": true
+    },
+    "framer-motion": {
+      "src": "../../node_modules/framer-motion/dist/es/index.mjs",
+      "file": "framer-motion.js",
+      "fileHash": "6c0423f4",
+      "needsInterop": false
+    },
+    "lucide-react": {
+      "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "1037755d",
+      "needsInterop": false
+    },
+    "@icons-pack/react-simple-icons": {
+      "src": "../../node_modules/@icons-pack/react-simple-icons/index.mjs",
+      "file": "@icons-pack_react-simple-icons.js",
+      "fileHash": "80312d36",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-V2RGCPN2": {
+      "file": "chunk-V2RGCPN2.js"
+    },
+    "chunk-WYYPSHNY": {
+      "file": "chunk-WYYPSHNY.js"
+    }
+  }
+}
