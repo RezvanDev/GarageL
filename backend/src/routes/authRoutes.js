@@ -11,6 +11,7 @@ router.post('/login', authController.login);
 // Protected routes
 router.use(authMiddleware.protect);
 router.get('/me', authController.getMe);
+router.get('/telegram-token', authController.getTelegramToken);
 
 // Admin only routes
 router.use(authMiddleware.restrictTo('admin'));

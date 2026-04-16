@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const Order = require('../models/orderModel');
+const { v4: uuidv4 } = require('uuid');
 
 
 exports.updateRole = async (req, res, next) => {
@@ -142,6 +143,26 @@ exports.updateRole = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             user: updatedUser
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getTelegramToken = async (req, res, next) => {
+    try {
+        const token = uuidv4();
+        await User.setTelegramSyncToken(req.user.id, token);
+        
+        const botUsername = process.env.TELEGRAM_BOT_USERNAME || 'Garage_Notification_Bot';
+        const link = `https://t.me/${botUsername}?start=${token}`;
+        
+        res.status(200).json({
+            status: 'success',
+            data: {
+                token,
+                link
+            }
         });
     } catch (err) {
         next(err);

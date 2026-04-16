@@ -2,6 +2,7 @@ const Order = require('../models/orderModel');
 const Offer = require('../models/offerModel');
 const AppError = require('../utils/appError');
 const db = require('../db');
+const telegramService = require('../services/telegramService');
 
 exports.createOrder = async (req, res, next) => {
     try {
@@ -173,6 +174,9 @@ exports.approveOffer = async (req, res, next) => {
 
         // Update order status to offer_created (renamed from offered for consistency)
         await Order.update(approvedOffer.order_id, { status: 'offer_created' });
+        
+        // Notify client via Telegram
+        await telegramService.notifyOrderUpdate(approvedOffer.order_id, 'offer_created');
 
         res.status(200).json({
             status: 'success',
@@ -205,6 +209,9 @@ exports.selectOffer = async (req, res, next) => {
             delivery_method: deliveryMethod
         });
 
+        // Notify client (optional, they just did it, but good to have a log)
+        await telegramService.notifyOrderUpdate(orderId, 'offer_selected');
+
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);
@@ -217,6 +224,7 @@ exports.confirmProductPayment = async (req, res, next) => {
         const { orderId } = req.params;
         
         await Order.update(orderId, { status: 'paid_product' });
+        await telegramService.notifyOrderUpdate(orderId, 'paid_product');
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);
@@ -236,6 +244,7 @@ exports.updateTrackNumber = async (req, res, next) => {
             track_number: trackNumber,
             status: 'shipped_by_seller'
         });
+        await telegramService.notifyOrderUpdate(orderId, 'shipped_by_seller');
 
         res.status(200).json({ status: 'success' });
     } catch (err) {
@@ -258,6 +267,7 @@ exports.receiveAtWarehouse = async (req, res, next) => {
             warehouse_photo_url: photoUrl,
             status: 'waiting_delivery_payment'
         });
+        await telegramService.notifyOrderUpdate(orderId, 'waiting_delivery_payment');
 
         res.status(200).json({ status: 'success' });
     } catch (err) {
@@ -271,6 +281,7 @@ exports.confirmDeliveryPayment = async (req, res, next) => {
         const { orderId } = req.params;
         
         await Order.update(orderId, { status: 'delivery_paid' });
+        await telegramService.notifyOrderUpdate(orderId, 'delivery_paid');
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);
@@ -286,6 +297,7 @@ exports.shipToUzbekistan = async (req, res, next) => {
             shipping_track_number: shippingTrackNumber,
             status: 'shipped_to_uzbekistan'
         });
+        await telegramService.notifyOrderUpdate(orderId, 'shipped_to_uzbekistan');
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);
@@ -298,6 +310,7 @@ exports.markDelivered = async (req, res, next) => {
         const { orderId } = req.params;
         
         await Order.update(orderId, { status: 'delivered' });
+        await telegramService.notifyOrderUpdate(orderId, 'delivered');
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);

@@ -67,6 +67,13 @@ class User {
         return true;
     }
 
+    static async setTelegramSyncToken(userId, token) {
+        await db.query(
+            'UPDATE users SET telegram_sync_token = $1 WHERE id = $2',
+            [token, userId]
+        );
+    }
+
     static async comparePassword(candidatePassword, userPassword) {
         return await bcrypt.compare(candidatePassword, userPassword);
     }

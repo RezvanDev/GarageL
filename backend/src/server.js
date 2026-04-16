@@ -9,6 +9,8 @@ const orderRoutes = require('./routes/orderRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const { protect, restrictTo } = require('./middleware/authMiddleware');
 const path = require('path');
+const telegramRoutes = require('./routes/telegramRoutes');
+const telegramService = require('./services/telegramService');
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +59,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/upload', uploadRoutes); // Added
+app.use('/api/v1/telegram', telegramRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -77,6 +80,9 @@ app.use((req, res, next) => {
 app.use(globalErrorHandler);
 
 // START SERVER
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
+    
+    // Initialize Telegram Webhook
+    await telegramService.initWebhook();
 });
