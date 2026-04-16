@@ -43,29 +43,31 @@ export const Dashboard = ({ onNavigate, user }) => {
                 <p>Выбранные товары для оплаты</p>
             </GlassCard>
 
-            <GlassCard 
-                className="view-card" 
-                style={{ 
-                    background: isTelegramConnected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0, 136, 204, 0.15)', 
-                    borderColor: isTelegramConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(0, 136, 204, 0.3)' 
-                }}
-                onClick={async () => {
-                    if (isTelegramConnected) return;
-                    try {
-                        const res = await api.auth.getTelegramToken();
-                        if (res.data?.link) {
-                            window.open(res.data.link, '_blank');
+            {!isTelegramConnected && (
+                <GlassCard 
+                    className="view-card" 
+                    style={{ background: 'rgba(0, 136, 204, 0.15)', borderColor: 'rgba(0, 136, 204, 0.3)' }}
+                    onClick={async () => {
+                        const newWindow = window.open('', '_blank');
+                        try {
+                            const res = await api.auth.getTelegramToken();
+                            if (res.data?.link && newWindow) {
+                                newWindow.location.href = res.data.link;
+                            } else if (newWindow) {
+                                newWindow.close();
+                            }
+                        } catch (err) {
+                            if (newWindow) newWindow.close();
+                            console.error('Telegram Link Error:', err);
+                            alert('Ошибка при получении ссылки. Попробуйте позже.');
                         }
-                    } catch (err) {
-                        console.error('Telegram Link Error:', err);
-                        alert('Ошибка при получении ссылки. Попробуйте позже.');
-                    }
-                }}
-            >
-                <Bell size={48} color={isTelegramConnected ? '#10b981' : '#0088cc'} />
-                <h3>{isTelegramConnected ? 'Уведомления активны ✅' : 'Уведомления в Telegram'}</h3>
-                <p>{isTelegramConnected ? 'Вы получаете сообщения о заказах' : 'Получайте сообщения о новых офферах и статусах'}</p>
-            </GlassCard>
+                    }}
+                >
+                    <Bell size={48} color="#0088cc" />
+                    <h3>Уведомления в Telegram</h3>
+                    <p>Получайте сообщения о новых офферах и статусах</p>
+                </GlassCard>
+            )}
         </div>
     </motion.div>
     );
