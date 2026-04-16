@@ -192,6 +192,19 @@ export const useGarageState = () => {
         }
     }, [fetchOrders]);
 
+    const fetchMe = useCallback(async () => {
+        try {
+            const res = await api.auth.getMe();
+            if (res.status === 'success') {
+                const updatedUser = res.user;
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                setUser(updatedUser);
+            }
+        } catch (err) {
+            console.error('Failed to sync user data:', err);
+        }
+    }, []);
+
     // --- Effects (Dependency arrays now have access to initialized variables) ---
 
     useEffect(() => {
@@ -203,6 +216,10 @@ export const useGarageState = () => {
             try {
                 const parsedUser = JSON.parse(savedUser);
                 setUser(parsedUser);
+                
+                // Sync with server to get latest data (like telegram_chat_id)
+                fetchMe();
+                
                 api.orders.getMy().then(res => setOrders(res.data.orders)).catch((err) => {
                     if (err.message.includes('token') || err.message.includes('logged in')) {
                         logout();
@@ -212,7 +229,7 @@ export const useGarageState = () => {
                 logout();
             }
         }
-    }, [fetchProducts, logout]);
+    }, [fetchProducts, logout, fetchMe]);
 
     return {
         user,

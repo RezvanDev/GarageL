@@ -6,7 +6,7 @@ const AppError = require('../utils/appError');
 class User {
     static async findByPhone(phone) {
         const result = await db.query(
-            'SELECT u.*, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.phone = $1',
+            'SELECT u.id, u.phone, u.password_hash, u.name, u.user_code, u.allowed_brands, u.telegram_chat_id, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.phone = $1',
             [phone]
         );
         return result.rows[0];
