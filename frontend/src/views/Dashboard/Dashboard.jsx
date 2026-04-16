@@ -50,6 +50,7 @@ export const Dashboard = ({ onNavigate }) => (
                             window.open(res.data.link, '_blank');
                         }
                     } catch (err) {
+                        console.error('Telegram Link Error:', err);
                         alert('Ошибка при получении ссылки. Попробуйте позже.');
                     }
                 }}

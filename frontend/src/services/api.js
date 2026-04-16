@@ -1,6 +1,5 @@
-const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_URL = isLocal ? 'http://localhost:5001/api/v1' : '/api/v1';
-export const BASE_IMAGE_URL = isLocal ? 'http://localhost:5001' : '';
+const API_URL = '/api/v1';
+export const BASE_IMAGE_URL = window.location.origin;
 
 const getHeaders = () => {
     const token = localStorage.getItem('token');
