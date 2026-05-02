@@ -204,40 +204,68 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                                             <div className="part-image-container" style={{ height: '110px', background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
                                                 <ImageCarousel images={item.image_url} height="100%" />
                                             </div>
-                                            <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', flex: 1 }}>
-                                                <div style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', fontWeight: 700 }}>
+                                            <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                                <div style={{ fontSize: '0.65rem', color: 'var(--accent-cyan)', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '2px' }}>
                                                     {item.brand.toUpperCase()} {item.model.toUpperCase()}
                                                 </div>
-                                                <div style={{ fontWeight: 700, minHeight: '3em' }}>{item.name}</div>
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Код: {item.code}</div>
-                                                <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-blue)', marginTop: 'auto' }}>
-                                                    ${item.price}
+                                                <div style={{ 
+                                                    fontWeight: 700, 
+                                                    fontSize: '0.8rem', 
+                                                    lineHeight: '1.2', 
+                                                    height: '2.4em', 
+                                                    overflow: 'hidden', 
+                                                    display: '-webkit-box', 
+                                                    WebkitLineClamp: 2, 
+                                                    WebkitBoxOrient: 'vertical',
+                                                    color: '#fff',
+                                                    marginBottom: '4px'
+                                                }}>
+                                                    {item.name}
                                                 </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px', gap: '10px' }}>
-                                                    <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '2px' }}>
-                                                        <button 
-                                                            style={{ background: 'none', border: 'none', color: '#fff', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}
-                                                            onClick={() => setQuantities(prev => ({ ...prev, [item.id]: Math.max(1, (prev[item.id] || 1) - 1) }))}
+                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
+                                                    {item.code}
+                                                </div>
+                                                
+                                                <div style={{ marginTop: 'auto' }}>
+                                                    <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent-blue)', marginBottom: '8px' }}>
+                                                        ${item.price}
+                                                    </div>
+                                                    
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                        {/* Quantity Selector */}
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', padding: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                                            <button 
+                                                                style={{ background: 'none', border: 'none', color: '#fff', flex: 1, height: '24px', cursor: 'pointer', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                                onClick={() => setQuantities(prev => ({ ...prev, [item.id]: Math.max(1, (prev[item.id] || 1) - 1) }))}
+                                                            >
+                                                                -
+                                                            </button>
+                                                            <span style={{ width: '30px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 700 }}>
+                                                                {quantities[item.id] || 1}
+                                                            </span>
+                                                            <button 
+                                                                style={{ background: 'none', border: 'none', color: '#fff', flex: 1, height: '24px', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                                onClick={() => setQuantities(prev => ({ ...prev, [item.id]: Math.min(item.quantity || 999, (prev[item.id] || 1) + 1) }))}
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        {/* Add to Cart Button */}
+                                                        <button
+                                                            className="btn-primary"
+                                                            style={{ 
+                                                                fontSize: '0.7rem', 
+                                                                padding: '10px 5px', 
+                                                                width: '100%', 
+                                                                borderRadius: '10px',
+                                                                letterSpacing: '0.5px'
+                                                            }}
+                                                            onClick={() => onAddToCart({ ...item, quantity: quantities[item.id] || 1 })}
                                                         >
-                                                            -
-                                                        </button>
-                                                        <span style={{ width: '30px', textAlign: 'center', fontSize: '0.9rem', fontWeight: 600 }}>
-                                                            {quantities[item.id] || 1}
-                                                        </span>
-                                                        <button 
-                                                            style={{ background: 'none', border: 'none', color: '#fff', width: '24px', height: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}
-                                                            onClick={() => setQuantities(prev => ({ ...prev, [item.id]: Math.min(item.quantity || 999, (prev[item.id] || 1) + 1) }))}
-                                                        >
-                                                            +
+                                                            В корзину
                                                         </button>
                                                     </div>
-                                                    <button
-                                                        className="btn-primary"
-                                                        style={{ fontSize: '0.8rem', padding: '8px 12px', flex: 1 }}
-                                                        onClick={() => onAddToCart({ ...item, quantity: quantities[item.id] || 1 })}
-                                                    >
-                                                        В корзину
-                                                    </button>
                                                 </div>
                                                 {item.quantity && <div style={{ fontSize: '0.7rem', opacity: 0.5, marginTop: '5px', textAlign: 'right' }}>В наличии: {item.quantity} шт</div>}
                                             </div>
