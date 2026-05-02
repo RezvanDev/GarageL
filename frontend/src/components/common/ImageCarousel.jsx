@@ -64,7 +64,7 @@ export const ImageCarousel = ({ images = [], height = '100%' }) => {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.2 }}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                 </AnimatePresence>
 
