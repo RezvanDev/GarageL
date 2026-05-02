@@ -201,7 +201,7 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                                         transition={{ duration: 0.2 }}
                                     >
                                         <GlassCard className="part-card" style={{ padding: '0', overflow: 'hidden' }}>
-                                            <div style={{ height: '140px', background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
+                                            <div className="part-image-container" style={{ height: '110px', background: 'rgba(255,255,255,0.05)', overflow: 'hidden' }}>
                                                 <ImageCarousel images={item.image_url} height="100%" />
                                             </div>
                                             <div style={{ padding: '15px', display: 'flex', flexDirection: 'column', flex: 1 }}>

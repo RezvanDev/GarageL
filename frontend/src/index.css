@@ -361,12 +361,12 @@ body {
   }
 
   .results-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 
   .part-card {
-    padding: 15px;
+    padding: 10px;
   }
 
   .order-item {
@@ -380,9 +380,19 @@ body {
 }
 
 @media (max-width: 480px) {
+  .app-container {
+    padding: 8px;
+  }
+
   .results-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    width: 100%;
+  }
+
+  .part-card {
+    padding: 8px;
+    min-width: 0;
   }
 
   .logo {
