@@ -381,7 +381,8 @@ body {
 
 @media (max-width: 480px) {
   .results-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
 
   .logo {

@@ -82,7 +82,7 @@ app.use(globalErrorHandler);
 // START SERVER
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
-    
+
     // Initialize Telegram Webhook
     await telegramService.initWebhook();
 });
