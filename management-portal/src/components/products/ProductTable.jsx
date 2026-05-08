@@ -8,6 +8,7 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                     <tr style={{ borderBottom: '1px solid var(--glass-border)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Код</th>
                         <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Фото</th>
                         <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Товар</th>
                         <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Авто</th>
@@ -23,6 +24,9 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                 <tbody>
                     {products.map(product => (
                         <tr key={product.id} style={{ borderBottom: '1px solid var(--glass-border)', transition: 'all 0.2s', ':hover': { background: 'rgba(255, 255, 255, 0.02)' } }}>
+                            <td style={{ padding: '16px', fontWeight: 600, color: 'var(--accent-blue)' }}>
+                                {String(product.id).padStart(4, '0')}
+                            </td>
                             <td style={{ padding: '16px' }}>
                                 <div style={{ width: '50px', height: '50px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {product.image_url

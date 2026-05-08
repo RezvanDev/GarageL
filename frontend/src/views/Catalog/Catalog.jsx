@@ -111,7 +111,8 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
         const modelMatch = selectedModel ? p.model.toLowerCase().includes(selectedModel.toLowerCase()) : true;
         const searchMatch = searchQuery
             ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            p.code.toLowerCase().includes(searchQuery.toLowerCase())
+            p.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            String(p.id).padStart(4, '0').includes(searchQuery)
             : true;
         return brandMatch && modelMatch && searchMatch;
     }) : [];
@@ -228,8 +229,10 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                                                 }}>
                                                     {item.name}
                                                 </div>
-                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginBottom: '8px' }}>
-                                                    {item.code}
+                                                <div style={{ fontSize: '0.65rem', color: 'var(--text-dim)', marginBottom: '8px', display: 'flex', gap: '8px' }}>
+                                                    <span>Код: {String(item.id).padStart(4, '0')}</span>
+                                                    <span>|</span>
+                                                    <span>Арт: {item.code}</span>
                                                 </div>
                                                 
                                                 <div style={{ marginTop: 'auto' }}>
@@ -258,7 +261,7 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     const supportUser = 'RezvanMax'; // Ваш юзернейм в Telegram
-                                                                    const text = encodeURIComponent(`Здравствуйте! Меня интересует товар:\n📦 ${item.name}\n🔢 Код: ${item.code}\n💰 Цена: $${item.price}`);
+                                                                    const text = encodeURIComponent(`Здравствуйте! Меня интересует товар:\n📦 ${item.name}\n🔢 Код: ${String(item.id).padStart(4, '0')}\n🆔 Артикул: ${item.code}\n💰 Цена: $${item.price}`);
                                                                     window.open(`https://t.me/${supportUser}?text=${text}`, '_blank');
                                                                 }}
                                                             >
