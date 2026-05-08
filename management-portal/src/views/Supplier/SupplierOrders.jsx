@@ -215,13 +215,35 @@ export const SupplierOrders = () => {
                                     </div>
                                 </div>
 
+                                <div style={{ 
+                                    background: 'rgba(255,255,255,0.02)', 
+                                    border: '1px solid rgba(255,255,255,0.05)',
+                                    padding: '12px', 
+                                    borderRadius: '10px',
+                                    fontSize: '0.75rem'
+                                }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', alignItems: 'center' }}>
+                                        <div>
+                                            <span style={{ opacity: 0.5 }}>Клиент: </span>
+                                            <span style={{ fontWeight: 600 }}>{order.client_name}</span>
+                                        </div>
+                                        <span style={{ padding: '2px 8px', background: 'var(--accent-blue)', color: '#fff', borderRadius: '4px', fontWeight: 800, fontSize: '0.7rem' }}>
+                                            {order.user_code}
+                                        </span>
+                                    </div>
+                                    {order.delivery_method && (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ opacity: 0.5 }}>Доставка: </span>
+                                            <span style={{ color: 'var(--accent-blue)', fontWeight: 800 }}>
+                                                {order.delivery_method === 'air' ? '✈️ АВИА' : '🚛 АВТО'}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div style={{ marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid var(--glass-border)' }}>
                                     {order.status === 'pending' ? (
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <div style={{ fontSize: '0.75rem' }}>
-                                                <span style={{ opacity: 0.5 }}>От: </span>
-                                                <span style={{ fontWeight: 600 }}>{order.client_name}</span>
-                                            </div>
+                                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                             <button className="btn-primary" style={{ fontSize: '0.75rem', padding: '8px 16px' }} onClick={() => openResponse(order)}>
                                                 Ответить
                                             </button>
