@@ -265,10 +265,27 @@ exports.receiveAtWarehouse = async (req, res, next) => {
             dimensions,
             shipping_price: shippingPrice,
             warehouse_photo_url: photoUrl,
+            status: 'logistics_review'
+        });
+        // Notify admin (optional, they see it in dashboard)
+        // await telegramService.notifyOrderUpdate(orderId, 'logistics_review');
+
+        res.status(200).json({ status: 'success' });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.approveLogistics = async (req, res, next) => {
+    try {
+        if (req.user.role !== 'admin') return next(new AppError('Admin only', 403));
+        const { orderId, finalShippingPrice } = req.body;
+        
+        await Order.update(orderId, {
+            shipping_price: finalShippingPrice,
             status: 'waiting_delivery_payment'
         });
         await telegramService.notifyOrderUpdate(orderId, 'waiting_delivery_payment');
-
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);

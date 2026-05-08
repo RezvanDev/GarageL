@@ -33,7 +33,7 @@ export const LogistOrders = () => {
 
     const TABS = [
         { id: 'acceptance', label: 'Приемка', status: ['shipped_by_seller'] },
-        { id: 'warehouse', label: 'На складе', status: ['arrived_warehouse', 'waiting_delivery_payment'] },
+        { id: 'warehouse', label: 'На складе', status: ['arrived_warehouse', 'logistics_review', 'waiting_delivery_payment'] },
         { id: 'shipping', label: 'Отправка', status: ['delivery_paid', 'shipped_to_uzbekistan'] },
         { id: 'history', label: 'История', status: ['delivered'] }
     ];
@@ -56,33 +56,37 @@ export const LogistOrders = () => {
     };
 
     const handlePhotoUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
-        if (photos.length >= 5) {
+        const slotsLeft = 5 - photos.length;
+        if (slotsLeft <= 0) {
             alert('Максимум 5 фотографий');
             return;
         }
 
+        const filesToUpload = files.slice(0, slotsLeft);
         setUploading(true);
-        const data = new FormData();
-        data.append('image', file);
 
-        try {
-            const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/product-image`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                body: data
-            });
-            const result = await res.json();
-            if (result.status === 'success') {
-                setPhotos(prev => [...prev, result.imageUrl]);
+        for (const file of filesToUpload) {
+            const data = new FormData();
+            data.append('image', file);
+
+            try {
+                const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/product-image`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                    body: data
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    setPhotos(prev => [...prev, result.imageUrl]);
+                }
+            } catch (err) {
+                console.error('Upload failed:', err);
             }
-        } catch (err) {
-            alert('Ошибка загрузки: ' + err.message);
-        } finally {
-            setUploading(false);
         }
+        setUploading(false);
     };
 
     const removePhoto = (index) => {
@@ -240,6 +244,12 @@ export const LogistOrders = () => {
                                 <span style={{ opacity: 0.5 }}>Трек (поставщик):</span>
                                 <span style={{ fontWeight: 700, color: '#10b981' }}>{order.track_number || 'Ожидается'}</span>
                             </div>
+                            {order.shipping_price && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <span style={{ opacity: 0.5 }}>Стоимость лог.:</span>
+                                    <span style={{ fontWeight: 800, color: '#f59e0b' }}>${order.shipping_price}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Status specific actions */}
@@ -253,11 +263,13 @@ export const LogistOrders = () => {
                             </button>
                         )}
 
-                        {(order.status === 'arrived_warehouse' || order.status === 'waiting_delivery_payment') && (
+                        {(order.status === 'arrived_warehouse' || order.status === 'logistics_review' || order.status === 'waiting_delivery_payment') && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#f59e0b', background: 'rgba(245, 158, 11, 0.05)', padding: '12px', borderRadius: '10px' }}>
                                 <Info size={16} />
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                                    {order.status === 'arrived_warehouse' ? 'Ожидает расчета логистом' : 'Ожидает оплаты доставки клиентом'}
+                                    {order.status === 'arrived_warehouse' ? 'Ожидает расчета логистом' : 
+                                     order.status === 'logistics_review' ? 'На проверке у администратора' :
+                                     'Ожидает оплаты доставки клиентом'}
                                 </span>
                             </div>
                         )}
@@ -362,7 +374,7 @@ export const LogistOrders = () => {
                                                 cursor: 'pointer'
                                             }}
                                         >
-                                            <input type="file" hidden onChange={handlePhotoUpload} />
+                                            <input type="file" multiple hidden onChange={handlePhotoUpload} />
                                             {uploading ? <Loader2 className="spinner" size={20} /> : <Camera size={20} style={{ opacity: 0.3 }} />}
                                         </label>
                                     )}

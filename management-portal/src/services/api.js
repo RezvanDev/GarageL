@@ -114,6 +114,11 @@ export const api = {
                 method: 'PATCH',
                 body: JSON.stringify(payload)
             }),
+        approveLogistics: (payload) =>
+            api.request('/orders/approve-logistics', {
+                method: 'PATCH',
+                body: JSON.stringify(payload)
+            }),
         confirmProductPayment: (orderId) =>
             api.request(`/orders/${orderId}/confirm-product-payment`, {
                 method: 'PATCH'

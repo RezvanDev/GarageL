@@ -26,6 +26,7 @@ router.post('/select-offer', orderController.selectOffer);
 router.patch('/:orderId/confirm-product-payment', restrictTo('admin'), orderController.confirmProductPayment);
 router.patch('/update-track', restrictTo('supplier', 'admin'), orderController.updateTrackNumber);
 router.patch('/receive-warehouse', restrictTo('logist', 'admin'), orderController.receiveAtWarehouse);
+router.patch('/approve-logistics', restrictTo('admin'), orderController.approveLogistics);
 router.patch('/:orderId/confirm-delivery-payment', restrictTo('admin'), orderController.confirmDeliveryPayment);
 router.patch('/ship-to-uz', restrictTo('logist', 'admin'), orderController.shipToUzbekistan);
 router.patch('/:orderId/mark-delivered', restrictTo('logist', 'admin', 'admin'), orderController.markDelivered);

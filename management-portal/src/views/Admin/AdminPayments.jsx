@@ -12,7 +12,8 @@ export const AdminPayments = () => {
 
     const fetchOrders = async () => {
         try {
-            const res = await api.orders.getByStatus('offer_selected,waiting_delivery_payment,paid_product,delivery_paid');
+            const allStatuses = 'offer_selected,waiting_delivery_payment,paid_product,delivery_paid,shipped_to_uzbekistan,delivered';
+            const res = await api.orders.getByStatus(allStatuses);
             setOrders(res.data.orders);
         } catch (err) {
             console.error(err);
@@ -40,6 +41,12 @@ export const AdminPayments = () => {
 
     const productPayments = orders.filter(o => o.status === 'offer_selected');
     const deliveryPayments = orders.filter(o => o.status === 'waiting_delivery_payment');
+    const paymentHistory = orders.filter(o => ['paid_product', 'delivery_paid', 'shipped_to_uzbekistan', 'delivered'].includes(o.status));
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        return new Date(dateStr).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    };
 
     return (
         <div className="fade-in">
@@ -66,7 +73,7 @@ export const AdminPayments = () => {
                 </div>
             </section>
 
-            <section>
+            <section style={{ marginBottom: '40px' }}>
                 <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <Truck color="var(--accent-blue)" /> Оплата за ДОСТАВКУ
                 </h3>
@@ -85,6 +92,47 @@ export const AdminPayments = () => {
                             </button>
                         </div>
                     ))}
+                </div>
+            </section>
+
+            <section>
+                <h3 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', opacity: 0.7 }}>
+                    <CheckCircle2 color="var(--text-dim)" /> История оплат
+                </h3>
+                <div className="glass-card" style={{ padding: '0', overflow: 'hidden' }}>
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Заказ / Клиент</th>
+                                <th>Товар ($)</th>
+                                <th>Доставка ($)</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paymentHistory.map(order => (
+                                <tr key={order.id}>
+                                    <td style={{ fontSize: '0.8rem', opacity: 0.6 }}>{formatDate(order.updated_at)}</td>
+                                    <td>
+                                        <div style={{ fontWeight: 600 }}>#{order.id}</div>
+                                        <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>{order.user_code}</div>
+                                    </td>
+                                    <td style={{ fontWeight: 700, color: order.status !== 'offer_selected' ? '#10b981' : 'inherit' }}>
+                                        ${order.price}
+                                    </td>
+                                    <td style={{ fontWeight: 700, color: order.status === 'delivery_paid' || order.status === 'delivered' || order.status === 'shipped_to_uzbekistan' ? 'var(--accent-blue)' : 'inherit' }}>
+                                        {order.shipping_price ? `$${order.shipping_price}` : '—'}
+                                    </td>
+                                    <td>
+                                        <span style={{ fontSize: '0.7rem', fontWeight: 800, opacity: 0.6 }}>
+                                            {order.status.toUpperCase()}
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </section>
         </div>
