@@ -73,7 +73,7 @@ export const LogistOrders = () => {
             data.append('image', file);
 
             try {
-                const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/product-image`, {
+                const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/order-image`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                     body: data
