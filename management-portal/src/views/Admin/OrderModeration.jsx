@@ -5,9 +5,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export const OrderModeration = () => {
     const [activeTab, setActiveTab] = useState('offers'); // offers, logistics
+    const [offers, setOffers] = useState([]);
     const [logisticsOrders, setLogisticsOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [approving, setApproving] = useState(null);
     const [approvingLogistics, setApprovingLogistics] = useState(null);
+    const [finalPrice, setFinalPrice] = useState('');
+    const [itemName, setItemName] = useState('');
+    const [deliveryTime, setDeliveryTime] = useState('');
     const [finalShippingPrice, setFinalShippingPrice] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         fetchPendingOffers();
