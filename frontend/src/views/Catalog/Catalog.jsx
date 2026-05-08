@@ -101,12 +101,12 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
             fetchProducts();
         }
     }, [fetchProducts]);
-    const [selectedBrand, setSelectedBrand] = useState('hyundai'); // Default to hyundai
+    const [selectedBrand, setSelectedBrand] = useState(''); // No brand selected by default
     const [selectedModel, setSelectedModel] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [quantities, setQuantities] = useState({}); // { productId: quantity }
 
-    const filtered = products.filter(p => {
+    const filtered = selectedBrand ? products.filter(p => {
         const brandMatch = p.brand.toLowerCase() === selectedBrand.toLowerCase();
         const modelMatch = selectedModel ? p.model.toLowerCase().includes(selectedModel.toLowerCase()) : true;
         const searchMatch = searchQuery
@@ -114,7 +114,7 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
             p.code.toLowerCase().includes(searchQuery.toLowerCase())
             : true;
         return brandMatch && modelMatch && searchMatch;
-    });
+    }) : [];
 
     const handleBrandSelect = (brandId) => {
         setSelectedBrand(brandId);
@@ -190,7 +190,13 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                 <main className="catalog-main">
                     <div className="results-grid">
                         <AnimatePresence mode="popLayout">
-                            {filtered.length > 0 ? (
+                            {!selectedBrand ? (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                    <p style={{ opacity: 0.5, gridColumn: '1/-1', textAlign: 'center', padding: '60px 40px', fontSize: '1.1rem' }}>
+                                        Выберите марку автомобиля для просмотра каталога запчастей
+                                    </p>
+                                </motion.div>
+                            ) : filtered.length > 0 ? (
                                 filtered.map(item => (
                                     <motion.div
                                         key={item.id}
