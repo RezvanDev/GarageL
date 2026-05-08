@@ -14,7 +14,7 @@ export const AdminPayments = () => {
         try {
             const allStatuses = 'offer_selected,waiting_delivery_payment,paid_product,delivery_paid,shipped_to_uzbekistan,delivered';
             const res = await api.orders.getByStatus(allStatuses);
-            setOrders(res.data.orders);
+            setOrders(res?.data?.orders || []);
         } catch (err) {
             console.error(err);
         } finally {

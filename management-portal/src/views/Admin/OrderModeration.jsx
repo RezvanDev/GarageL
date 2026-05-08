@@ -24,7 +24,7 @@ export const OrderModeration = () => {
     const fetchPendingOffers = async () => {
         try {
             const res = await api.orders.getPendingOffers();
-            setOffers(res.data.offers);
+            setOffers(res?.data?.offers || []);
         } catch (err) {
             console.error('Failed to fetch pending offers:', err);
         } finally {
@@ -35,7 +35,7 @@ export const OrderModeration = () => {
     const fetchLogisticsReview = async () => {
         try {
             const res = await api.orders.getByStatus('logistics_review');
-            setLogisticsOrders(res.data.orders);
+            setLogisticsOrders(res?.data?.orders || []);
         } catch (err) {
             console.error('Failed to fetch logistics review:', err);
         }
@@ -116,7 +116,7 @@ export const OrderModeration = () => {
                         color: '#fff', fontWeight: 600, cursor: 'pointer'
                     }}
                 >
-                    Предложения ({offers.length})
+                    Предложения ({(offers || []).length})
                 </button>
                 <button 
                     onClick={() => setActiveTab('logistics')}
@@ -126,7 +126,7 @@ export const OrderModeration = () => {
                         color: '#fff', fontWeight: 600, cursor: 'pointer'
                     }}
                 >
-                    Логистика ({logisticsOrders.length})
+                    Логистика ({(logisticsOrders || []).length})
                 </button>
             </div>
 
@@ -144,7 +144,7 @@ export const OrderModeration = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {offers.length > 0 ? (
+                            {(offers || []).length > 0 ? (
                                 offers.map(offer => (
                                     <tr key={offer.id}>
                                         <td style={{ fontSize: '0.8rem' }}>
@@ -177,9 +177,10 @@ export const OrderModeration = () => {
                                                 style={{ fontSize: '0.75rem', padding: '6px 12px' }}
                                                 onClick={() => {
                                                     setApproving(offer);
-                                                    setItemName(offer.item_name);
-                                                    setDeliveryTime(offer.delivery_time || '');
-                                                    setFinalPrice(Math.round(parseFloat(offer.price) * 1.2));
+                                                    setItemName(offer?.item_name || '');
+                                                    setDeliveryTime(offer?.delivery_time || '');
+                                                    const price = parseFloat(offer?.price || 0);
+                                                    setFinalPrice(isNaN(price) ? 0 : Math.round(price * 1.2));
                                                 }}
                                             >
                                                 <Edit3 size={14} style={{ marginRight: '5px' }} />
@@ -210,7 +211,7 @@ export const OrderModeration = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {logisticsOrders.length > 0 ? (
+                            {(logisticsOrders || []).length > 0 ? (
                                 logisticsOrders.map(order => (
                                     <tr key={order.id}>
                                         <td style={{ fontSize: '0.8rem' }}>
@@ -235,7 +236,7 @@ export const OrderModeration = () => {
                                                 style={{ fontSize: '0.75rem', padding: '6px 12px', background: '#f59e0b' }}
                                                 onClick={() => {
                                                     setApprovingLogistics(order);
-                                                    setFinalShippingPrice(order.shipping_price);
+                                                    setFinalShippingPrice(order?.shipping_price || 0);
                                                 }}
                                             >
                                                 <Edit3 size={14} style={{ marginRight: '5px' }} />
@@ -267,12 +268,12 @@ export const OrderModeration = () => {
                             onClick={e => e.stopPropagation()}
                             style={{ maxWidth: '500px', width: '95%' }}
                         >
-                            <h3 style={{ marginBottom: '15px' }}>Проверка логистики: #{approvingLogistics.id}</h3>
+                            <h3 style={{ marginBottom: '15px' }}>Проверка логистики: #{approvingLogistics?.id}</h3>
                             <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '15px', marginBottom: '20px', border: '1px solid var(--glass-border)' }}>
-                                <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '5px' }}>{approvingLogistics.item_name}</div>
-                                <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '10px' }}>Замеры логиста: {approvingLogistics.weight}кг / {approvingLogistics.dimensions}</div>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '5px' }}>{approvingLogistics?.item_name}</div>
+                                <div style={{ fontSize: '0.8rem', opacity: 0.6, marginBottom: '10px' }}>Замеры логиста: {approvingLogistics?.weight}кг / {approvingLogistics?.dimensions}</div>
                                 <div style={{ display: 'flex', gap: '5px' }}>
-                                    {approvingLogistics.warehouse_photo_url?.split(',').map((url, i) => (
+                                    {approvingLogistics.warehouse_photo_url?.split(',').filter(Boolean).map((url, i) => (
                                         <img key={i} src={`${BASE_IMAGE_URL}${url}`} style={{ width: '50px', height: '50px', borderRadius: '4px', objectFit: 'cover' }} alt="" />
                                     ))}
                                 </div>
@@ -328,7 +329,7 @@ export const OrderModeration = () => {
                                 <div style={{ display: 'flex', gap: '15px', marginBottom: '10px' }}>
                                     {approving.photo_url ? (
                                         <div style={{ display: 'flex', gap: '5px', overflowX: 'auto', paddingBottom: '5px' }}>
-                                            {approving.photo_url.split(',').map((url, i) => (
+                                            {approving.photo_url.split(',').filter(Boolean).map((url, i) => (
                                                 <img key={i} src={`${BASE_IMAGE_URL}${url}`} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} alt="" />
                                             ))}
                                         </div>
@@ -338,9 +339,9 @@ export const OrderModeration = () => {
                                         </div>
                                     )}
                                     <div style={{ flex: 1 }}>
-                                        <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{approving.item_name} {approving.year && `(${approving.year}г.)`}</div>
-                                        <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{approving.car_info}</div>
-                                        {approving.condition && <div style={{ fontSize: '0.7rem', color: approving.condition === 'new' ? '#10b981' : '#f59e0b', fontWeight: 700 }}>{approving.condition === 'new' ? 'Новый' : 'Б/У'}</div>}
+                                        <div style={{ fontSize: '0.8rem', fontWeight: 700 }}>{approving?.item_name} {approving?.year && `(${approving?.year}г.)`}</div>
+                                        <div style={{ fontSize: '0.75rem', opacity: 0.6 }}>{approving?.car_info}</div>
+                                        {approving?.condition && <div style={{ fontSize: '0.7rem', color: approving?.condition === 'new' ? '#10b981' : '#f59e0b', fontWeight: 700 }}>{approving?.condition === 'new' ? 'Новый' : 'Б/У'}</div>}
                                     </div>
                                 </div>
                                 {approving.comment && (
