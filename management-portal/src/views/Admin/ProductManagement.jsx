@@ -70,38 +70,56 @@ export const ProductManagement = () => {
     };
 
     const handleFileUpload = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        // Check how many slots are left
+        const currentUrls = formData.image_url ? formData.image_url.split(',').filter(Boolean) : [];
+        const slotsLeft = 5 - currentUrls.length;
+        
+        if (slotsLeft <= 0) {
+            alert('Максимальное количество фотографий (5) уже достигнуто');
+            return;
+        }
+
+        const filesToUpload = files.slice(0, slotsLeft);
+        if (filesToUpload.length < files.length) {
+            alert(`Будет загружено только первые ${slotsLeft} фото из выбранных`);
+        }
 
         setIsUploading(true);
-        const data = new FormData();
-        data.append('image', file);
+        
+        for (const file of filesToUpload) {
+            const data = new FormData();
+            data.append('image', file);
 
-        try {
-            const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/product-image`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: data
-            });
-            const result = await res.json();
-            if (result.status === 'success') {
-                setFormData(prev => {
-                    const currentUrls = prev.image_url ? prev.image_url.split(',').filter(Boolean) : [];
-                    if (currentUrls.length < 5) {
-                        currentUrls.push(result.imageUrl);
-                    }
-                    return { ...prev, image_url: currentUrls.join(',') };
+            try {
+                const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/product-image`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: data
                 });
-            } else {
-                alert('Upload failed: ' + result.message);
+                const result = await res.json();
+                
+                if (result.status === 'success') {
+                    setFormData(prev => {
+                        const urls = prev.image_url ? prev.image_url.split(',').filter(Boolean) : [];
+                        if (urls.length < 5) {
+                            urls.push(result.imageUrl);
+                        }
+                        return { ...prev, image_url: urls.join(',') };
+                    });
+                } else {
+                    alert('Ошибка при загрузке одного из файлов: ' + result.message);
+                }
+            } catch (err) {
+                alert('Ошибка сети при загрузке: ' + err.message);
             }
-        } catch (err) {
-            alert('Upload error: ' + err.message);
-        } finally {
-            setIsUploading(false);
         }
+        
+        setIsUploading(false);
     };
 
     const handleSubmit = async (e) => {

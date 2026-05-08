@@ -74,6 +74,7 @@ export const ProductFormModal = ({
                                 }}>
                                     <input
                                         type="file"
+                                        multiple
                                         accept="image/*"
                                         onChange={onImageUpload}
                                         style={{
