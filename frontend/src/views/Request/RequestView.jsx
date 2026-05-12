@@ -170,44 +170,46 @@ export const RequestView = ({ onBack, onSubmit }) => {
                             transition={{ duration: 0.2 }}
                         >
                             {mode === 'single' ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                    <div className="form-group">
-                                        <label>Название (необяз.)</label>
+                                <>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                                        <div className="form-group">
+                                            <label>Название (необяз.)</label>
+                                            <div className="input-wrapper">
+                                                <Clipboard className="input-icon" size={18} />
+                                                <input
+                                                    name="name"
+                                                    className="auth-input"
+                                                    placeholder="Передний бампер"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="form-group">
+                                            <label>Артикул (необяз.)</label>
+                                            <div className="input-wrapper">
+                                                <Hash className="input-icon" size={18} />
+                                                <input
+                                                    name="article"
+                                                    className="auth-input"
+                                                    placeholder="OEM номер"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="form-group" style={{ marginTop: '15px' }}>
+                                        <label>Кол-во</label>
                                         <div className="input-wrapper">
-                                            <Clipboard className="input-icon" size={18} />
                                             <input
-                                                name="name"
+                                                name="quantity"
+                                                type="number"
+                                                min="1"
+                                                defaultValue="1"
                                                 className="auth-input"
-                                                placeholder="Передний бампер"
+                                                style={{ paddingLeft: '15px' }}
+                                                required
                                             />
                                         </div>
                                     </div>
-                                    <div className="form-group">
-                                        <label>Артикул (необяз.)</label>
-                                        <div className="input-wrapper">
-                                            <Hash className="input-icon" size={18} />
-                                            <input
-                                                name="article"
-                                                className="auth-input"
-                                                placeholder="OEM номер"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="form-group" style={{ marginTop: '15px' }}>
-                                    <label>Кол-во</label>
-                                    <div className="input-wrapper">
-                                        <input
-                                            name="quantity"
-                                            type="number"
-                                            min="1"
-                                            defaultValue="1"
-                                            className="auth-input"
-                                            style={{ paddingLeft: '15px' }}
-                                            required
-                                        />
-                                    </div>
-                                </div>
+                                </>
                             ) : (
                                 <div className="form-group">
                                     <label>Список/Описание деталей</label>
