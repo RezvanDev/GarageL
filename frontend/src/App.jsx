@@ -224,7 +224,35 @@ export default function App() {
                             }}>
                               {offer.condition === 'new' ? 'Новый' : 'Б/У'}
                             </span>
-                            <span style={{ fontWeight: 800, fontSize: '1.5rem', color: '#10b981' }}>${offer.final_price || offer.price}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <button 
+                                    style={{ 
+                                        background: 'rgba(255,255,255,0.05)', 
+                                        border: '1px solid rgba(255,255,255,0.1)', 
+                                        borderRadius: '8px', 
+                                        color: 'var(--accent-blue)',
+                                        width: '32px',
+                                        height: '32px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        cursor: 'pointer'
+                                    }}
+                                    title="Задать вопрос по предложению"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        const supportUser = 'RezvanMax'; // Ваш юзернейм в Telegram
+                                        let text = `Здравствуйте! Вопрос по предложению к заказу #${selectedOrder.id}:\n`;
+                                        if (offer.item_name) text += `📦 ${offer.item_name}\n`;
+                                        text += `💰 Цена: $${offer.final_price || offer.price}\n`;
+                                        if (offer.delivery_time) text += `⏱ Срок: ${offer.delivery_time}\n`;
+                                        window.open(`https://t.me/${supportUser}?text=${encodeURIComponent(text)}`, '_blank');
+                                    }}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+                                </button>
+                                <span style={{ fontWeight: 800, fontSize: '1.5rem', color: '#10b981' }}>${offer.final_price || offer.price}</span>
+                            </div>
                           </div>
                           <h4 style={{ fontSize: '1rem', fontWeight: 700, marginTop: '8px', lineHeight: 1.2 }}>{offer.item_name}</h4>
                           <p style={{ fontSize: '0.85rem', opacity: 0.6, marginTop: '4px' }}>Срок: {offer.delivery_time || '3-5 дней'}</p>

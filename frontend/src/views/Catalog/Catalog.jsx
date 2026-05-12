@@ -261,8 +261,12 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     const supportUser = 'RezvanMax'; // Ваш юзернейм в Telegram
-                                                                    const text = encodeURIComponent(`Здравствуйте! Меня интересует товар:\n📦 ${item.name}\n🔢 Код: ${String(item.id).padStart(4, '0')}\n🆔 Артикул: ${item.code}\n💰 Цена: $${item.price}`);
-                                                                    window.open(`https://t.me/${supportUser}?text=${text}`, '_blank');
+                                                                    let text = `Здравствуйте! Меня интересует товар:\n`;
+                                                                    if (item.name) text += `📦 ${item.name}\n`;
+                                                                    if (item.id) text += `🔢 Код: ${String(item.id).padStart(4, '0')}\n`;
+                                                                    if (item.code) text += `🆔 Артикул: ${item.code}\n`;
+                                                                    text += `💰 Цена: $${item.price}`;
+                                                                    window.open(`https://t.me/${supportUser}?text=${encodeURIComponent(text)}`, '_blank');
                                                                 }}
                                                             >
                                                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>

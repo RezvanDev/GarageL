@@ -39,6 +39,7 @@ export const RequestView = ({ onBack, onSubmit }) => {
         const data = {
             mode,
             name: mode === 'single' ? fd.get('name') : null,
+            article: mode === 'single' ? fd.get('article') : null,
             description: mode === 'multi' ? fd.get('description') : null,
             brand: selectedBrand,
             model: selectedModel,
@@ -48,8 +49,8 @@ export const RequestView = ({ onBack, onSubmit }) => {
             photos: photoFiles
         };
 
-        const itemName = mode === 'single' ? data.name : 'Групповой запрос';
-        const carInfo = `${data.brand} ${data.model} ${data.year ? `${data.year}г.` : ''} ${data.vin ? `(VIN: ${data.vin})` : ''}`;
+        const itemName = mode === 'single' ? (data.name || (data.article ? `Арт: ${data.article}` : 'Деталь')) : 'Групповой запрос';
+        const carInfo = `${data.brand} ${data.model} ${data.year ? `${data.year}г.` : ''} ${data.vin ? `(VIN: ${data.vin})` : ''} ${data.article ? `(Арт: ${data.article})` : ''}`;
         const description = mode === 'multi' ? data.description : '';
 
         onSubmit(itemName, carInfo, description, photoFiles, data.brand, data.year, data.quantity);
@@ -169,32 +170,42 @@ export const RequestView = ({ onBack, onSubmit }) => {
                             transition={{ duration: 0.2 }}
                         >
                             {mode === 'single' ? (
-                                <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '15px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                     <div className="form-group">
-                                        <label>Название детали</label>
+                                        <label>Название (необяз.)</label>
                                         <div className="input-wrapper">
                                             <Clipboard className="input-icon" size={18} />
                                             <input
                                                 name="name"
                                                 className="auth-input"
-                                                placeholder="Например: Передний бампер"
-                                                required
+                                                placeholder="Передний бампер"
                                             />
                                         </div>
                                     </div>
                                     <div className="form-group">
-                                        <label>Кол-во</label>
+                                        <label>Артикул (необяз.)</label>
                                         <div className="input-wrapper">
+                                            <Hash className="input-icon" size={18} />
                                             <input
-                                                name="quantity"
-                                                type="number"
-                                                min="1"
-                                                defaultValue="1"
+                                                name="article"
                                                 className="auth-input"
-                                                style={{ paddingLeft: '15px', textAlign: 'center' }}
-                                                required
+                                                placeholder="OEM номер"
                                             />
                                         </div>
+                                    </div>
+                                </div>
+                                <div className="form-group" style={{ marginTop: '15px' }}>
+                                    <label>Кол-во</label>
+                                    <div className="input-wrapper">
+                                        <input
+                                            name="quantity"
+                                            type="number"
+                                            min="1"
+                                            defaultValue="1"
+                                            className="auth-input"
+                                            style={{ paddingLeft: '15px' }}
+                                            required
+                                        />
                                     </div>
                                 </div>
                             ) : (

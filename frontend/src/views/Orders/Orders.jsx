@@ -42,7 +42,34 @@ export const Orders = ({ orders, onSelectOrder, user }) => (
                             style={{ padding: '18px' }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                <span style={{ fontWeight: 700, color: 'var(--accent-blue)', fontSize: '0.9rem' }}>Заказ #{order.id}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <span style={{ fontWeight: 700, color: 'var(--accent-blue)', fontSize: '0.9rem' }}>Заказ #{order.id}</span>
+                                    <button 
+                                        style={{ 
+                                            background: 'rgba(255,255,255,0.05)', 
+                                            border: '1px solid rgba(255,255,255,0.1)', 
+                                            borderRadius: '6px', 
+                                            color: 'var(--accent-blue)',
+                                            width: '26px',
+                                            height: '26px',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            cursor: 'pointer'
+                                        }}
+                                        title="Задать вопрос по заказу"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const supportUser = 'RezvanMax'; // Ваш юзернейм в Telegram
+                                            let text = `Здравствуйте! У меня вопрос по заказу #${order.id}:\n`;
+                                            if (order.item_name) text += `📦 ${order.item_name}\n`;
+                                            text += `Статус: ${order.status_text || formatStatus(order.status)}\n`;
+                                            window.open(`https://t.me/${supportUser}?text=${encodeURIComponent(text)}`, '_blank');
+                                        }}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+                                    </button>
+                                </div>
                                 <Badge status={order.status}>{order.status_text || formatStatus(order.status)}</Badge>
                             </div>
 
