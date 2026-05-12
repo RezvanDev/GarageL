@@ -10,14 +10,12 @@ export const Modal = ({ isOpen, onClose, title, children }) => (
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={onClose}
             >
                 <motion.div
                     className="modal-content glass"
                     initial={{ scale: 0.9, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
                     exit={{ scale: 0.9, y: 20 }}
-                    onClick={(e) => e.stopPropagation()}
                 >
                     <button className="close-modal" onClick={onClose}><X size={24} /></button>
                     <h3 style={{ marginBottom: '20px' }}>{title}</h3>

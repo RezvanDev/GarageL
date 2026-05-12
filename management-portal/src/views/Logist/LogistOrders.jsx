@@ -315,7 +315,7 @@ export const LogistOrders = () => {
             </div>
 
             {processing && (
-                <div className="modal-overlay" onClick={() => setProcessing(null)}>
+                <div className="modal-overlay">
                     <div className="glass-card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '550px', width: '90%' }}>
                         <div style={{ borderBottom: '1px solid var(--glass-border)', paddingBottom: '20px', marginBottom: '25px' }}>
                             <h3 style={{ fontSize: '1.4rem' }}>Приемка и замеры: #{processing.id}</h3>

@@ -227,7 +227,7 @@ export const UserManagement = () => {
             </div>
 
             {selectedUser && (
-                <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
+                <div className="modal-overlay">
                     <div className="glass-card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '600px', width: '90%' }}>
                         <h3>История заказов: {selectedUser.name || selectedUser.phone}</h3>
                         <div style={{ marginTop: '20px', maxHeight: '400px', overflowY: 'auto' }}>
@@ -256,7 +256,7 @@ export const UserManagement = () => {
             )}
 
             {isCreateModalOpen && (
-                <div className="modal-overlay" onClick={() => setIsCreateModalOpen(false)}>
+                <div className="modal-overlay">
                     <div className="glass-card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '90%' }}>
                         <h3 style={{ marginBottom: '20px' }}>Создание пользователя</h3>
                         <form onSubmit={handleCreateUser}>

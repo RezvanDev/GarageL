@@ -233,7 +233,7 @@ export const ProductManagement = () => {
 
             {/* Modals placed outside any role-specific wrapping */}
             {approvingProduct && (
-                <div className="modal-overlay" onClick={() => setApprovingProduct(null)}>
+                <div className="modal-overlay">
                     <div className="glass-card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px' }}>
                         <h3 style={{ marginBottom: '20px' }}>Одобрение товара</h3>
                         <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', fontSize: '0.9rem' }}>

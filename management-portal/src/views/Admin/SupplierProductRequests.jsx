@@ -131,7 +131,7 @@ export const SupplierProductRequests = () => {
 
             {/* Approve modal */}
             {approving && (
-                <div className="modal-overlay" onClick={() => setApproving(null)}>
+                <div className="modal-overlay">
                     <div className="glass-card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px' }}>
                         <h3 style={{ marginBottom: '6px' }}>Одобрение товара</h3>
                         <p style={{ color: 'var(--text-dim)', marginBottom: '24px', fontSize: '0.9rem' }}>

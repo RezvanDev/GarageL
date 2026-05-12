@@ -301,7 +301,7 @@ export const SupplierOrders = () => {
 
             <AnimatePresence>
                 {respondingTo && (
-                    <div className="modal-overlay" onClick={() => setRespondingTo(null)}>
+                    <div className="modal-overlay">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}

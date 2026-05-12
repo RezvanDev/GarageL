@@ -24,7 +24,7 @@ export const ProductFormModal = ({
         : Object.keys(CAR_BRANDS);
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay">
             <div className="glass-card modal-content" onClick={e => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <h3>{currentProduct ? 'Редактировать товар' : 'Добавить новый товар'}</h3>
