@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X, Maximize2 } from 'lucide-react';
 import { BASE_IMAGE_URL } from '../../services/api';
@@ -117,92 +118,95 @@ export const ImageCarousel = ({ images = [], height = '100%' }) => {
             </div>
 
             {/* Lightbox Portal/Overlay */}
-            <AnimatePresence>
-                {isLightboxOpen && (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                            background: 'rgba(0,0,0,0.95)', zIndex: 99999,
-                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
-                        }}
-                        onClick={closeLightbox}
-                    >
-                        <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 100000 }}>
-                            <button 
-                                onClick={closeLightbox}
-                                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', padding: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            >
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        <div style={{ position: 'relative', width: '90%', height: '80%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <AnimatePresence mode="wait">
-                                <motion.img
-                                    key={currentIndex}
-                                    src={`${BASE_IMAGE_URL}${photoList[currentIndex]}`}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.2 }}
-                                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                                    onClick={(e) => e.stopPropagation()} // Prevent close when clicking image
-                                />
-                            </AnimatePresence>
-                        </div>
-
-                        {photoList.length > 1 && (
-                            <>
-                                <button
-                                    onClick={prev}
-                                    style={{
-                                        position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',
-                                        background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
-                                        width: '50px', height: '50px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        cursor: 'pointer', zIndex: 100000, transition: 'background 0.3s'
-                                    }}
-                                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            {typeof document !== 'undefined' && createPortal(
+                <AnimatePresence>
+                    {isLightboxOpen && (
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            style={{
+                                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                background: 'rgba(0,0,0,0.95)', zIndex: 99999,
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                            }}
+                            onClick={closeLightbox}
+                        >
+                            <div style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 100000 }}>
+                                <button 
+                                    onClick={closeLightbox}
+                                    style={{ background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', padding: '10px', color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 >
-                                    <ChevronLeft size={32} />
+                                    <X size={24} />
                                 </button>
-                                <button
-                                    onClick={next}
-                                    style={{
-                                        position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
-                                        background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
-                                        width: '50px', height: '50px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        cursor: 'pointer', zIndex: 100000, transition: 'background 0.3s'
-                                    }}
-                                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
-                                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                                >
-                                    <ChevronRight size={32} />
-                                </button>
+                            </div>
 
-                                <div style={{
-                                    position: 'absolute', bottom: '40px', display: 'flex', gap: '8px', zIndex: 100000
-                                }}>
-                                    {photoList.map((_, idx) => (
-                                        <div
-                                            key={idx}
-                                            onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
-                                            style={{
-                                                width: '10px', height: '10px', borderRadius: '50%',
-                                                background: idx === currentIndex ? 'var(--accent-blue)' : 'rgba(255,255,255,0.3)',
-                                                transition: 'background 0.3s', cursor: 'pointer'
-                                            }}
-                                        />
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                            <div style={{ position: 'relative', width: '90%', height: '80%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <AnimatePresence mode="wait">
+                                    <motion.img
+                                        key={currentIndex}
+                                        src={`${BASE_IMAGE_URL}${photoList[currentIndex]}`}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        transition={{ duration: 0.2 }}
+                                        style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                                        onClick={(e) => e.stopPropagation()} // Prevent close when clicking image
+                                    />
+                                </AnimatePresence>
+                            </div>
+
+                            {photoList.length > 1 && (
+                                <>
+                                    <button
+                                        onClick={prev}
+                                        style={{
+                                            position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',
+                                            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+                                            width: '50px', height: '50px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            cursor: 'pointer', zIndex: 100000, transition: 'background 0.3s'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                    >
+                                        <ChevronLeft size={32} />
+                                    </button>
+                                    <button
+                                        onClick={next}
+                                        style={{
+                                            position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)',
+                                            background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%',
+                                            width: '50px', height: '50px', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            cursor: 'pointer', zIndex: 100000, transition: 'background 0.3s'
+                                        }}
+                                        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                                        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                                    >
+                                        <ChevronRight size={32} />
+                                    </button>
+
+                                    <div style={{
+                                        position: 'absolute', bottom: '40px', display: 'flex', gap: '8px', zIndex: 100000
+                                    }}>
+                                        {photoList.map((_, idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
+                                                style={{
+                                                    width: '10px', height: '10px', borderRadius: '50%',
+                                                    background: idx === currentIndex ? 'var(--accent-blue)' : 'rgba(255,255,255,0.3)',
+                                                    transition: 'background 0.3s', cursor: 'pointer'
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </>
     );
 };
