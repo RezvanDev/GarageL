@@ -72,38 +72,49 @@ export const SupplierOrders = () => {
     };
 
     const handleFileUpload = async (itemId, e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
 
         const item = offerItems.find(i => i.id === itemId);
-        if (item.photoUrls.length >= 5) {
+        const slotsLeft = 5 - item.photoUrls.length;
+        if (slotsLeft <= 0) {
             alert('Максимум 5 фотографий');
             return;
         }
 
+        const filesToUpload = files.slice(0, slotsLeft);
         setIsUploading(true);
-        const data = new FormData();
-        data.append('image', file);
 
-        try {
-            const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/product-image`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: data
-            });
-            const result = await res.json();
-            if (result.status === 'success') {
-                updateOfferItem(itemId, 'photoUrls', [...item.photoUrls, result.imageUrl]);
-            } else {
-                alert('Ошибка загрузки: ' + result.message);
+        const newUrls = [];
+
+        for (const file of filesToUpload) {
+            const data = new FormData();
+            data.append('image', file);
+
+            try {
+                const res = await fetch(`${BASE_IMAGE_URL}/api/v1/upload/product-image`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: data
+                });
+                const result = await res.json();
+                if (result.status === 'success') {
+                    newUrls.push(result.imageUrl);
+                } else {
+                    alert('Ошибка загрузки: ' + result.message);
+                }
+            } catch (err) {
+                alert('Ошибка при загрузке: ' + err.message);
             }
-        } catch (err) {
-            alert('Ошибка при загрузке: ' + err.message);
-        } finally {
-            setIsUploading(false);
         }
+
+        if (newUrls.length > 0) {
+            updateOfferItem(itemId, 'photoUrls', [...item.photoUrls, ...newUrls]);
+        }
+
+        setIsUploading(false);
     };
 
     const handleRespond = async (e) => {
@@ -374,7 +385,7 @@ export const SupplierOrders = () => {
                                                 ))}
                                                 {item.photoUrls.length < 5 && (
                                                     <label style={{ width: '60px', height: '60px', borderRadius: '8px', background: 'rgba(255,255,255,0.05)', border: '1px dashed var(--glass-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                                                        <input type="file" hidden accept="image/*" onChange={(e) => handleFileUpload(item.id, e)} disabled={isUploading} />
+                                                        <input type="file" hidden multiple accept="image/*" onChange={(e) => handleFileUpload(item.id, e)} disabled={isUploading} />
                                                         {isUploading ? <Loader2 className="spinner" size={16} /> : <ImageIcon size={20} style={{ opacity: 0.3 }} />}
                                                     </label>
                                                 )}
