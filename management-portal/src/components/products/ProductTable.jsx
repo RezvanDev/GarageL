@@ -8,17 +8,17 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead>
                     <tr style={{ borderBottom: '1px solid var(--glass-border)', background: 'rgba(255, 255, 255, 0.02)' }}>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Код</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Фото</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Товар</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Авто</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Артикул</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>В наличии</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Цена</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>ID</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Фото / 图片</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Товар / 名称</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Авто / 车</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Артикул / 零件号</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>В наличии / 库存</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Цена / 价格</th>
                         {isSupplier && (
-                            <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Статус</th>
+                            <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Статус / 状态</th>
                         )}
-                        <th style={{ padding: '16px', textAlign: 'right', color: 'var(--text-dim)', fontWeight: 600 }}>Действия</th>
+                        <th style={{ padding: '16px', textAlign: 'right', color: 'var(--text-dim)', fontWeight: 600 }}>Действия / 操作</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,7 +48,7 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                                     fontSize: '0.8rem', 
                                     fontWeight: 700 
                                 }}>
-                                    {product.quantity || 0} шт
+                                    {product.quantity || 0} шт/件
                                 </span>
                             </td>
                             <td style={{ padding: '16px', fontWeight: 600 }}>
@@ -68,8 +68,8 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                             {isSupplier && (
                                 <td style={{ padding: '16px' }}>
                                     {product.is_approved
-                                        ? <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.75rem', fontWeight: 600 }}>Одобрен</span>
-                                        : <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600 }}>На проверке</span>
+                                        ? <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.75rem', fontWeight: 600 }}>Одобрен / 已批准</span>
+                                        : <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600 }}>На проверке / 审核中</span>
                                     }
                                 </td>
                             )}
@@ -93,8 +93,8 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                     ))}
                     {products.length === 0 && (
                         <tr>
-                            <td colSpan={isSupplier ? 7 : 6} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)' }}>
-                                Товары не найдены
+                            <td colSpan={isSupplier ? 9 : 8} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)' }}>
+                                Товары не найдены / 未找到产品
                             </td>
                         </tr>
                     )}
