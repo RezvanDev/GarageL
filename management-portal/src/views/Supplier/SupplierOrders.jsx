@@ -180,8 +180,8 @@ export const SupplierOrders = () => {
             <div className="supplier-orders">
                 <header style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '5px' }}>Мои заказы</h2>
-                        <p style={{ color: 'var(--text-dim)' }}>Управление предложениями и отправкой товаров</p>
+                        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '5px' }}>Мои заказы / 我的订单</h2>
+                        <p style={{ color: 'var(--text-dim)' }}>Управление предложениями и отправкой товаров / 管理报价和货运</p>
                     </div>
                 </header>
 
@@ -193,7 +193,7 @@ export const SupplierOrders = () => {
                                     <div style={{ flex: 1 }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px' }}>
                                             <Package size={16} color="var(--accent-blue)" />
-                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.5 }}>ЗАКАЗ #{order.id}</span>
+                                            <span style={{ fontSize: '0.75rem', fontWeight: 700, opacity: 0.5 }}>ЗАКАЗ / 订单 #{order.id}</span>
                                         </div>
                                         <div style={{ 
                                             fontSize: '0.7rem', 
@@ -203,7 +203,10 @@ export const SupplierOrders = () => {
                                             borderRadius: '20px', 
                                             fontWeight: 700 
                                         }}>
-                                            {order.status === 'pending' ? 'НОВЫЙ ЗАПРОС' : order.status.toUpperCase()}
+                                            {order.status === 'pending' ? 'НОВЫЙ ЗАПРОС / 新请求' : 
+                                             order.status === 'paid_product' ? 'ОПЛАЧЕНО / 已付款' :
+                                             order.status === 'shipped_by_seller' ? 'ОТПРАВЛЕНО / 已发货' :
+                                             order.status.toUpperCase()}
                                         </div>
                                     </div>
                                 </div>
@@ -218,11 +221,19 @@ export const SupplierOrders = () => {
                                             <ImageIcon size={24} style={{ opacity: 0.2 }} />
                                         </div>
                                     )}
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)' }}>
-                                        <p style={{ marginBottom: '5px' }}><strong>Авто:</strong> {order.car_info}</p>
+                                    <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', flex: 1 }}>
+                                        <p style={{ marginBottom: '5px' }}><strong>Авто / 车:</strong> {order.car_info}</p>
                                         <p style={{ fontSize: '0.8rem', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                            {order.description || 'Нет описания'}
+                                            {order.description || 'Нет описания / 无描述'}
                                         </p>
+                                        {order.description && (
+                                            <button 
+                                                onClick={() => window.open(`https://translate.google.com/?sl=ru&tl=zh-CN&text=${encodeURIComponent(order.description)}`, '_blank')}
+                                                style={{ background: 'transparent', border: 'none', color: 'var(--accent-blue)', fontSize: '0.7rem', cursor: 'pointer', padding: 0, marginTop: '4px', textDecoration: 'underline' }}
+                                            >
+                                                Перевести / 翻译 (Google)
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
@@ -235,7 +246,7 @@ export const SupplierOrders = () => {
                                 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', alignItems: 'center' }}>
                                         <div>
-                                            <span style={{ opacity: 0.5 }}>Клиент: </span>
+                                            <span style={{ opacity: 0.5 }}>Клиент / 客户: </span>
                                             <span style={{ fontWeight: 600 }}>{order.client_name}</span>
                                         </div>
                                         <span style={{ padding: '2px 8px', background: 'var(--accent-blue)', color: '#fff', borderRadius: '4px', fontWeight: 800, fontSize: '0.7rem' }}>
@@ -244,9 +255,9 @@ export const SupplierOrders = () => {
                                     </div>
                                     {order.delivery_method && (
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ opacity: 0.5 }}>Доставка: </span>
+                                            <span style={{ opacity: 0.5 }}>Доставка / 货运: </span>
                                             <span style={{ color: 'var(--accent-blue)', fontWeight: 800 }}>
-                                                {order.delivery_method === 'air' ? '✈️ АВИА' : '🚛 АВТО'}
+                                                {order.delivery_method === 'air' ? '✈️ АВИА / 空运' : '🚛 АВТО / 陆运'}
                                             </span>
                                         </div>
                                     )}
@@ -256,16 +267,16 @@ export const SupplierOrders = () => {
                                     {order.status === 'pending' ? (
                                         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                                             <button className="btn-primary" style={{ fontSize: '0.75rem', padding: '8px 16px' }} onClick={() => openResponse(order)}>
-                                                Ответить
+                                                Ответить / 报价
                                             </button>
                                         </div>
                                     ) : order.status === 'paid_product' ? (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                            <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600 }}>Товар оплачен! Введите трек-номер после отправки:</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 600 }}>Товар оплачен! Введите трек-номер: / 商品已付款！请输入单号：</div>
                                             <div style={{ display: 'flex', gap: '10px' }}>
                                                 <input 
                                                     type="text" 
-                                                    placeholder="Трек-номер..." 
+                                                    placeholder="Трек-номер / 单号..." 
                                                     id={`track-${order.id}`}
                                                     style={{ flex: 1, padding: '8px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '8px', color: '#fff' }}
                                                 />
@@ -277,14 +288,14 @@ export const SupplierOrders = () => {
                                                         handleUpdateTrack(order.id, val);
                                                     }}
                                                 >
-                                                    Отправить
+                                                    Отправить / 发送
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
                                         <div style={{ fontSize: '0.85rem', opacity: 0.7 }}>
-                                            <div><strong>Трек-номер:</strong> {order.track_number}</div>
-                                            <div style={{ marginTop: '5px', color: 'var(--accent-blue)' }}>Товар в пути на склад / обработан</div>
+                                            <div><strong>Трек-номер / 单号:</strong> {order.track_number}</div>
+                                            <div style={{ marginTop: '5px', color: 'var(--accent-blue)' }}>Товар в пути / 货物在途中</div>
                                         </div>
                                     )}
                                 </div>
@@ -293,7 +304,7 @@ export const SupplierOrders = () => {
                     ) : (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '100px 20px', opacity: 0.3 }}>
                             <Package size={60} style={{ marginBottom: '20px' }} />
-                            <p>На данный момент новых запросов нет</p>
+                            <p>На данный момент новых запросов нет / 目前没有新请求</p>
                         </div>
                     )}
                 </div>
@@ -316,9 +327,9 @@ export const SupplierOrders = () => {
                                 position: 'relative'
                             }}
                         >
-                            <h3 style={{ marginBottom: '5px' }}>Ваше предложение</h3>
+                            <h3 style={{ marginBottom: '5px' }}>Ваше предложение / 您的报价</h3>
                             <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginBottom: '20px' }}>
-                                Деталь для: <strong>{respondingTo.car_info}</strong> (Надо: {respondingTo.quantity || 1} шт)
+                                Деталь для / 配件： <strong>{respondingTo.car_info}</strong> (Надо / 数量： {respondingTo.quantity || 1} шт)
                             </p>
 
                             <form onSubmit={handleRespond} style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
@@ -335,9 +346,9 @@ export const SupplierOrders = () => {
                                         gap: '15px'
                                     }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <h4 style={{ fontSize: '0.9rem', opacity: 0.7 }}>Вариант #{index + 1}</h4>
+                                            <h4 style={{ fontSize: '0.9rem', opacity: 0.7 }}>Вариант / 方案 #{index + 1}</h4>
                                             {offerItems.length > 1 && (
-                                                <button type="button" onClick={() => removeOfferItem(item.id)} style={{ background: 'transparent', border: 'none', color: '#ff4444', fontSize: '0.75rem', cursor: 'pointer' }}>Удалить</button>
+                                                <button type="button" onClick={() => removeOfferItem(item.id)} style={{ background: 'transparent', border: 'none', color: '#ff4444', fontSize: '0.75rem', cursor: 'pointer' }}>Удалить / 删除</button>
                                             )}
                                         </div>
 
@@ -352,7 +363,7 @@ export const SupplierOrders = () => {
                                                     transition: 'all 0.2s'
                                                 }}
                                             >
-                                                Новый
+                                                Новый / 新
                                             </button>
                                             <button
                                                 type="button"
@@ -364,12 +375,12 @@ export const SupplierOrders = () => {
                                                     transition: 'all 0.2s'
                                                 }}
                                             >
-                                                Б/У
+                                                Б/У / 旧
                                             </button>
                                         </div>
 
                                         <div className="form-group">
-                                            <label>Фото (до 5 штук)</label>
+                                            <label>Фото / 图片 (max 5)</label>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '5px' }}>
                                                 {item.photoUrls.map((url, idx) => (
                                                     <div key={idx} style={{ position: 'relative', width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden' }}>
@@ -393,10 +404,10 @@ export const SupplierOrders = () => {
                                         </div>
 
                                         <div className="form-group">
-                                            <label>Название запчасти</label>
+                                            <label>Название запчасти / 配件名称</label>
                                             <input
                                                 type="text"
-                                                placeholder="Напр: Фара левая адаптивная"
+                                                placeholder="Напр: Фара левая / 例如：左前大灯"
                                                 value={item.itemName}
                                                 onChange={e => updateOfferItem(item.id, 'itemName', e.target.value)}
                                                 required
@@ -405,16 +416,16 @@ export const SupplierOrders = () => {
 
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                                             <div className="form-group">
-                                                <label>Код детали</label>
+                                                <label>Код / 零件号</label>
                                                 <input
                                                     type="text"
-                                                    placeholder="Напр: 63117263051"
+                                                    placeholder="OE Code"
                                                     value={item.itemCode}
                                                     onChange={e => updateOfferItem(item.id, 'itemCode', e.target.value)}
                                                 />
                                             </div>
                                             <div className="form-group">
-                                                <label>Год</label>
+                                                <label>Год / 年份</label>
                                                 <input
                                                     type="text"
                                                     placeholder="2022"
@@ -423,7 +434,7 @@ export const SupplierOrders = () => {
                                                 />
                                             </div>
                                             <div className="form-group">
-                                                <label>В наличии (шт)</label>
+                                                <label>Наличие / 库存</label>
                                                 <input
                                                     type="number"
                                                     min="1"
@@ -433,7 +444,7 @@ export const SupplierOrders = () => {
                                                 />
                                             </div>
                                             <div className="form-group">
-                                                <label>Цена за шт ($)</label>
+                                                <label>Цена за шт ($) / 单价</label>
                                                 <input
                                                     type="number"
                                                     placeholder="45"
@@ -445,9 +456,9 @@ export const SupplierOrders = () => {
                                         </div>
 
                                         <div className="form-group">
-                                            <label>Комментарий</label>
+                                            <label>Комментарий / 备注</label>
                                             <textarea
-                                                placeholder="Опишите состояние..."
+                                                placeholder="..."
                                                 value={item.comment}
                                                 onChange={e => updateOfferItem(item.id, 'comment', e.target.value)}
                                                 style={{ height: '60px', paddingTop: '10px', fontSize: '0.85rem' }}
@@ -462,16 +473,16 @@ export const SupplierOrders = () => {
                                     onClick={addOfferItem}
                                     style={{ borderStyle: 'dashed', opacity: 0.7 }}
                                 >
-                                    + Добавить еще вариант (напр. Б/У)
+                                    + Добавить еще вариант / 添加更多方案
                                 </button>
 
                                 <div style={{ display: 'flex', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--glass-border)', paddingTop: '20px' }}>
                                     <button type="button" className="btn-secondary" onClick={() => setRespondingTo(null)} style={{ flex: 1 }}>
-                                        Отмена
+                                        Отмена / 取消
                                     </button>
                                     <button type="submit" className="btn-primary" disabled={submitting || isUploading} style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                                         {submitting ? <Loader2 className="spinner" size={18} /> : <Send size={18} />}
-                                        Отправить ({offerItems.length})
+                                        Отправить / 发送 ({offerItems.length})
                                     </button>
                                 </div>
                             </form>

@@ -9,9 +9,9 @@ import { ProductManagement } from '../views/Admin/ProductManagement';
 import { SupplierOrders } from '../views/Supplier/SupplierOrders';
 
 const MENU_ITEMS = [
-    { path: '/supplier', label: 'Главная', icon: LayoutDashboard, exact: true },
-    { path: '/supplier/products', label: 'Мои товары', icon: Package },
-    { path: '/supplier/orders', label: 'Заявки клиентов', icon: MessageSquare },
+    { path: '/supplier', label: 'Главная / 首页', icon: LayoutDashboard, exact: true },
+    { path: '/supplier/products', label: 'Мои товары / 我的产品', icon: Package },
+    { path: '/supplier/orders', label: 'Заявки клиентов / 客户订单', icon: MessageSquare },
 ];
 
 export const SupplierPortal = ({ user, onLogout }) => (
