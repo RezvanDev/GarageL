@@ -44,7 +44,13 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ phone, password, name })
             }),
-        me: () => api.request('/auth/me')
+        me: () => api.request('/auth/me'),
+        getTelegramToken: () => api.request('/auth/telegram-token'),
+        syncTelegramWebApp: (initData) =>
+            api.request('/auth/telegram-sync-webapp', {
+                method: 'POST',
+                body: JSON.stringify({ initData })
+            })
     },
 
     products: {

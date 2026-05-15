@@ -105,6 +105,60 @@ class TelegramService {
             console.error('Telegram Notify Error:', err);
         }
     }
+
+    async notifyNewOrderToSuppliers(order) {
+        try {
+            if (!order.car_brand) return;
+            
+            const brandJson = JSON.stringify(order.car_brand);
+            const result = await db.query(
+                `SELECT u.telegram_chat_id 
+                 FROM users u
+                 JOIN roles r ON u.role_id = r.id 
+                 WHERE r.name = 'supplier' 
+                 AND u.telegram_chat_id IS NOT NULL
+                 AND u.allowed_brands @> $1::jsonb`,
+                [brandJson]
+            );
+
+            const suppliers = result.rows;
+            for (const s of suppliers) {
+                const message = `🆕 <b>Новый запрос на запчасть!</b>\n\nМарка: <b>${order.car_brand}</b>\nДеталь: ${order.item_name}\nАвто: ${order.car_info}\n\nПосмотреть и предложить цену: <a href="https://nexaicall.space/supplier/orders">Открыть портал</a>`;
+                await this.sendMessage(s.telegram_chat_id, message);
+            }
+        } catch (err) {
+            console.error('Telegram Notify Suppliers Error:', err);
+        }
+    }
+
+    async notifySupplierOrderUpdate(orderId, status) {
+        try {
+            const result = await db.query(
+                `SELECT o.id, o.item_name, u.telegram_chat_id 
+                 FROM orders o 
+                 JOIN users u ON o.supplier_id = u.id 
+                 WHERE o.id = $1`, 
+                [orderId]
+            );
+            
+            const order = result.rows[0];
+            if (order && order.telegram_chat_id) {
+                const statusMap = {
+                    'offer_selected': 'Ваше предложение выбрано клиентом! 🛒\nОжидайте оплаты товара.',
+                    'paid_product': 'Товар оплачен! ✅\nПожалуйста, отправьте товар на склад и введите трек-номер в системе.'
+                };
+
+                const statusText = statusMap[status];
+                if (!statusText) return;
+
+                const message = `🔔 <b>Обновление по заказу #${order.id}</b>\n\nТовар: ${order.item_name}\n\n${statusText}\n\n<a href="https://nexaicall.space/supplier/orders">Перейти к заказу</a>`;
+                
+                await this.sendMessage(order.telegram_chat_id, message);
+            }
+        } catch (err) {
+            console.error('Telegram Notify Supplier Update Error:', err);
+        }
+    }
 }
 
 module.exports = new TelegramService();

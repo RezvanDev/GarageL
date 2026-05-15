@@ -28,6 +28,9 @@ exports.createOrder = async (req, res, next) => {
             quantity: quantity ? parseInt(quantity, 10) : 1
         });
 
+        // Notify suppliers about new order
+        await telegramService.notifyNewOrderToSuppliers(newOrder);
+
         res.status(201).json({
             status: 'success',
             data: {
@@ -209,8 +212,10 @@ exports.selectOffer = async (req, res, next) => {
             delivery_method: deliveryMethod
         });
 
-        // Notify client (optional, they just did it, but good to have a log)
+        // Notify client
         await telegramService.notifyOrderUpdate(orderId, 'offer_selected');
+        // Notify supplier
+        await telegramService.notifySupplierOrderUpdate(orderId, 'offer_selected');
 
         res.status(200).json({ status: 'success' });
     } catch (err) {
@@ -225,6 +230,7 @@ exports.confirmProductPayment = async (req, res, next) => {
         
         await Order.update(orderId, { status: 'paid_product' });
         await telegramService.notifyOrderUpdate(orderId, 'paid_product');
+        await telegramService.notifySupplierOrderUpdate(orderId, 'paid_product');
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);
