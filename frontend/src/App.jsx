@@ -45,6 +45,9 @@ export default function App() {
     register,
     logout,
     addToCart,
+    removeFromCart,
+    updateCartQuantity,
+    checkoutCart,
     addOrder,
     updateOrderStatus,
     fetchProducts,
@@ -120,7 +123,16 @@ export default function App() {
                     />
                 )}
                 {view === 'request' && <RequestView key="req" onBack={() => navigate('dashboard')} onSubmit={addOrder} />}
-                {view === 'cart' && <Cart key="cart" cart={cart} />}
+                {view === 'cart' && (
+                  <Cart
+                    key="cart"
+                    cart={cart}
+                    removeFromCart={removeFromCart}
+                    updateCartQuantity={updateCartQuantity}
+                    checkoutCart={checkoutCart}
+                    navigate={navigate}
+                  />
+                )}
               </AnimatePresence>
             </main>
 

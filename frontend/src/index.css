@@ -780,3 +780,18 @@ body {
     margin-top: 10px;
   }
 }
+
+/* Shopping Cart View responsive layout */
+@media (min-width: 769px) {
+  .cart-grid-layout {
+    grid-template-columns: 1fr 340px !important;
+    align-items: start;
+  }
+  .cart-item-actions {
+    width: auto !important;
+    border-top: none !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+    gap: 30px !important;
+  }
+}

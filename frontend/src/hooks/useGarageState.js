@@ -99,10 +99,56 @@ export const useGarageState = () => {
     // --- Order/Cart Actions ---
 
     const addToCart = useCallback((item) => {
-        setCart(prev => [...prev, item]);
+        setCart(prev => {
+            const existing = prev.find(i => i.id === item.id);
+            if (existing) {
+                return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i);
+            }
+            return [...prev, item];
+        });
         alert('Добавлено в корзину!');
         navigate('cart');
     }, [navigate]);
+
+    const removeFromCart = useCallback((id) => {
+        setCart(prev => prev.filter(item => item.id !== id));
+    }, []);
+
+    const updateCartQuantity = useCallback((id, quantity) => {
+        setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item));
+    }, []);
+
+    const checkoutCart = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            for (const item of cart) {
+                let photoUrl = null;
+                if (Array.isArray(item.image_url)) {
+                    photoUrl = item.image_url.join(',');
+                } else if (typeof item.image_url === 'string') {
+                    photoUrl = item.image_url;
+                }
+
+                await api.orders.create({
+                    itemName: item.name,
+                    carInfo: `${item.brand} ${item.model}`,
+                    description: item.description || `Заказ товара из каталога (Артикул: ${item.code})`,
+                    photoUrl,
+                    carBrand: item.brand,
+                    year: '',
+                    quantity: item.quantity || 1
+                });
+            }
+            alert('Заказ успешно оформлен!');
+            setCart([]);
+            await fetchOrders();
+            navigate('orders');
+        } catch (err) {
+            alert('Ошибка при оформлении заказа: ' + err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [cart, navigate, fetchOrders]);
 
     const addOrder = useCallback(async (itemName, carInfo, description, photoFiles, carBrand, year, quantity) => {
         setIsLoading(true);
@@ -244,6 +290,9 @@ export const useGarageState = () => {
         register,
         logout,
         addToCart,
+        removeFromCart,
+        updateCartQuantity,
+        checkoutCart,
         addOrder,
         fetchProducts,
         updateOrderStatus,
