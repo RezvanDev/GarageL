@@ -46,14 +46,14 @@ exports.getUserOrders = async (req, res, next) => {
     }
 };
 
-const signToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
+const signToken = (id, role, allowedBrands) => {
+    return jwt.sign({ id, role, allowedBrands }, process.env.JWT_SECRET, {
         expiresIn: '30d'
     });
 };
 
 const createSendToken = (user, statusCode, res) => {
-    const token = signToken(user.id);
+    const token = signToken(user.id, user.role, user.allowed_brands);
 
     // Remove password from output
     user.password_hash = undefined;

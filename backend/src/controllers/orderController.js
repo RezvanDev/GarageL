@@ -96,6 +96,19 @@ exports.respondToOrder = async (req, res, next) => {
             return next(new AppError('Only suppliers can respond to orders', 403));
         }
 
+        const order = await Order.getById(orderId);
+        if (!order) {
+            return next(new AppError('Заказ не найден', 404));
+        }
+
+        // Если пользователь поставщик, проверяем, разрешен ли ему бренд авто данного заказа
+        if (req.user.role === 'supplier') {
+            const allowedBrands = req.user.allowed_brands || [];
+            if (!allowedBrands.includes(order.car_brand)) {
+                return next(new AppError('У вас нет прав на отправку предложений для этого бренда автомобилей', 403));
+            }
+        }
+
         const createdOffers = [];
         for (const offerData of offers) {
             const newOffer = await Offer.create({
@@ -199,11 +212,22 @@ exports.selectOffer = async (req, res, next) => {
         const { orderId, offerId, deliveryMethod } = req.body;
         
         const order = await Order.getById(orderId);
+        if (!order) {
+            return next(new AppError('Заказ не найден', 404));
+        }
         if (order.client_id !== req.user.id) {
             return next(new AppError('Not your order', 403));
         }
 
         const offer = await Offer.getById(offerId);
+        if (!offer) {
+            return next(new AppError('Предложение не найдено', 404));
+        }
+
+        // Проверяем, что выбранное предложение действительно относится к этому заказу
+        if (Number(offer.order_id) !== Number(orderId)) {
+            return next(new AppError('Это предложение не относится к данному заказу', 400));
+        }
         
         await Order.update(orderId, {
             status: 'offer_selected',

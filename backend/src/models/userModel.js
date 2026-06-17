@@ -31,6 +31,7 @@ class User {
         
         await db.query('UPDATE users SET user_code = $1 WHERE id = $2', [userCode, newUser.id]);
         newUser.user_code = userCode;
+        newUser.role = roleName;
 
         return newUser;
     }

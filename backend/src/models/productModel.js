@@ -69,6 +69,11 @@ class Product {
         return result.rows[0];
     }
 
+    static async getById(id) {
+        const result = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+        return result.rows[0];
+    }
+
     static async delete(id) {
         await db.query('DELETE FROM products WHERE id = $1', [id]);
         return true;

@@ -20,7 +20,8 @@ class TelegramService {
         if (!this.bot || !process.env.TELEGRAM_WEBHOOK_URL || process.env.TELEGRAM_POLLING === 'true') return;
         try {
             const url = `${process.env.TELEGRAM_WEBHOOK_URL}/api/v1/telegram/webhook`;
-            await this.bot.setWebHook(url);
+            const secretToken = process.env.TELEGRAM_WEBHOOK_SECRET || 'garage_secret_bot_token_2026';
+            await this.bot.setWebHook(url, { secret_token: secretToken });
             console.log('Telegram Webhook set to:', url);
         } catch (err) {
             console.error('Failed to set Telegram Webhook:', err);

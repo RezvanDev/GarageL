@@ -81,3 +81,15 @@ CREATE TABLE IF NOT EXISTS offers (
 
 -- Seed Roles
 INSERT INTO roles (name) VALUES ('client'), ('supplier'), ('logist'), ('admin') ON CONFLICT DO NOTHING;
+
+-- 6. Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_products_lower_brand ON products (LOWER(brand));
+CREATE INDEX IF NOT EXISTS idx_products_lower_model ON products (LOWER(model));
+CREATE INDEX IF NOT EXISTS idx_products_is_approved ON products (is_approved);
+CREATE INDEX IF NOT EXISTS idx_orders_client_id ON orders (client_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders (status);
+CREATE INDEX IF NOT EXISTS idx_orders_supplier_id ON orders (supplier_id);
+CREATE INDEX IF NOT EXISTS idx_offers_order_id ON offers (order_id);
+CREATE INDEX IF NOT EXISTS idx_offers_supplier_id ON offers (supplier_id);
+CREATE INDEX IF NOT EXISTS idx_users_role_id ON users (role_id);
+

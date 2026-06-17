@@ -17,19 +17,12 @@ exports.protect = async (req, res, next) => {
         // 2) Verification token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // 3) Check if user still exists
-        const result = await query(
-            'SELECT u.*, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = $1',
-            [decoded.id]
-        );
-        const currentUser = result.rows[0];
-
-        if (!currentUser) {
-            return next(new AppError('The user belonging to this token no longer exists.', 401));
-        }
-
-        // GRANT ACCESS TO PROTECTED ROUTE
-        req.user = currentUser;
+        // 3) Grant access directly from JWT payload (role and allowedBrands)
+        req.user = {
+            id: decoded.id,
+            role: decoded.role,
+            allowed_brands: decoded.allowedBrands || []
+        };
         next();
     } catch (err) {
         next(new AppError('Invalid token. Please log in again.', 401));

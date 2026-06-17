@@ -1,4 +1,5 @@
 const Product = require('../models/productModel');
+const AppError = require('../utils/appError');
 
 exports.getAllProducts = async (req, res, next) => {
     try {
@@ -109,6 +110,16 @@ exports.updateProduct = async (req, res, next) => {
 
 exports.deleteProduct = async (req, res, next) => {
     try {
+        const product = await Product.getById(req.params.id);
+        if (!product) {
+            return next(new AppError('Товар не найден', 404));
+        }
+
+        // Если пользователь поставщик, проверяем, что он владелец товара
+        if (req.user.role === 'supplier' && Number(product.supplier_id) !== Number(req.user.id)) {
+            return next(new AppError('У вас нет прав на удаление этого товара', 403));
+        }
+
         await Product.delete(req.params.id);
         res.status(204).json({
             status: 'success',
