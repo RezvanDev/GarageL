@@ -105,7 +105,9 @@ exports.getPendingOrders = async (req, res, next) => {
 
         if (req.user.role === 'supplier') {
             const allowedBrands = req.user.allowed_brands || [];
-            orders = orders.filter(o => allowedBrands.includes(o.car_brand));
+            if (allowedBrands.length > 0) {
+                orders = orders.filter(o => allowedBrands.includes(o.car_brand));
+            }
         }
 
         res.status(200).json({
@@ -140,7 +142,7 @@ exports.respondToOrder = async (req, res, next) => {
         // Если пользователь поставщик, проверяем, разрешен ли ему бренд авто данного заказа
         if (req.user.role === 'supplier') {
             const allowedBrands = req.user.allowed_brands || [];
-            if (!allowedBrands.includes(order.car_brand)) {
+            if (allowedBrands.length > 0 && !allowedBrands.includes(order.car_brand)) {
                 return next(new AppError('У вас нет прав на отправку предложений для этого бренда автомобилей', 403));
             }
         }
