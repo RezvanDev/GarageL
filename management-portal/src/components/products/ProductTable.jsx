@@ -53,13 +53,13 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                             </td>
                             <td style={{ padding: '16px', fontWeight: 600 }}>
                                 {isSupplier ? (
-                                    `$${product.supplier_price || product.price}`
+                                    `¥${product.supplier_price || product.price}`
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span>${product.price}</span>
+                                        <span>{parseFloat(product.price).toLocaleString()} UZS</span>
                                         {product.supplier_price && product.supplier_price !== product.price && (
                                             <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 400 }}>
-                                                (от пост.: ${product.supplier_price})
+                                                (от пост.: {product.supplier_price} ¥)
                                             </span>
                                         )}
                                     </div>

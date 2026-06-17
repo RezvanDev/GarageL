@@ -223,7 +223,7 @@ export const ProductFormModal = ({
                         />
                     </div>
                     <div className="form-group">
-                        <label>{currentProduct || userRole === 'supplier' ? 'Ваша цена ($) / 您的价格' : 'Цена для клиентов ($) / 客户价格'}</label>
+                        <label>{userRole === 'supplier' ? 'Ваша цена (¥) / 您的价格 (元)' : 'Цена для клиентов (UZS) / 客户价格'}</label>
                         <input
                             type="number"
                             step="0.01"

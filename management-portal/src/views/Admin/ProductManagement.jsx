@@ -238,11 +238,11 @@ export const ProductManagement = () => {
                         <h3 style={{ marginBottom: '20px' }}>Одобрение товара</h3>
                         <div style={{ marginBottom: '20px', padding: '15px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', fontSize: '0.9rem' }}>
                             <p><strong>Товар:</strong> {approvingProduct.name}</p>
-                            <p><strong>Цена поставщика:</strong> ${approvingProduct.price}</p>
+                            <p><strong>Цена поставщика:</strong> {approvingProduct.supplier_price || approvingProduct.price} ¥</p>
                         </div>
                         <form onSubmit={handleApprove}>
                             <div className="form-group">
-                                <label>Итоговая цена для клиентов ($)</label>
+                                <label>Итоговая цена для клиентов (UZS)</label>
                                 <input
                                     type="number"
                                     value={finalPrice}
@@ -250,9 +250,11 @@ export const ProductManagement = () => {
                                     required
                                     autoFocus
                                 />
-                                <p style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', marginTop: '8px' }}>
-                                    Ваша маржа: ${(finalPrice - approvingProduct.price).toFixed(2)}
-                                </p>
+                                {finalPrice && (
+                                    <p style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', marginTop: '8px' }}>
+                                        Итоговая цена: {parseFloat(finalPrice).toLocaleString()} UZS (поставщик получит: {approvingProduct.supplier_price || approvingProduct.price} ¥)
+                                    </p>
+                                )}
                             </div>
                             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                                 <button type="button" className="btn-secondary" onClick={() => setApprovingProduct(null)} style={{ flex: 1 }}>Отмена</button>

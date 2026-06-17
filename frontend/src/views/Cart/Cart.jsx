@@ -154,10 +154,10 @@ export const Cart = ({ cart, removeFromCart, updateCartQuantity, checkoutCart, n
                                             {/* Price */}
                                             <div style={{ textAlign: 'right' }}>
                                                 <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-blue)' }}>
-                                                    ${(parseFloat(item.price) * (item.quantity || 1)).toFixed(2)}
+                                                    {(parseFloat(item.price) * (item.quantity || 1)).toLocaleString()} UZS
                                                 </div>
                                                 <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>
-                                                    ${parseFloat(item.price).toFixed(2)} / шт
+                                                    {parseFloat(item.price).toLocaleString()} UZS / шт
                                                 </div>
                                             </div>
 
@@ -197,7 +197,7 @@ export const Cart = ({ cart, removeFromCart, updateCartQuantity, checkoutCart, n
                             
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-dim)' }}>
                                 <span>Товары ({totalItems})</span>
-                                <span>${total.toFixed(2)}</span>
+                                <span>{total.toLocaleString()} UZS</span>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--text-dim)' }}>
@@ -273,7 +273,7 @@ export const Cart = ({ cart, removeFromCart, updateCartQuantity, checkoutCart, n
                             }}>
                                 <span>Итого к оплате:</span>
                                 <span style={{ color: '#00ff88', textShadow: '0 0 10px rgba(0,255,136,0.2)' }}>
-                                    ${total.toFixed(2)}
+                                    {total.toLocaleString()} UZS
                                 </span>
                             </div>
 

@@ -237,7 +237,7 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                                                 
                                                 <div style={{ marginTop: 'auto' }}>
                                                     <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--accent-blue)', marginBottom: '8px' }}>
-                                                        ${item.price}
+                                                        {parseFloat(item.price).toLocaleString()} UZS
                                                     </div>
                                                     
                                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -265,7 +265,7 @@ export const Catalog = ({ products = [], fetchProducts, onAddToCart, onOpenReque
                                                                     if (item.name) text += `📦 ${item.name}\n`;
                                                                     if (item.id) text += `🔢 Код: ${String(item.id).padStart(4, '0')}\n`;
                                                                     if (item.code) text += `🆔 Артикул: ${item.code}\n`;
-                                                                    text += `💰 Цена: $${item.price}`;
+                                                                    text += `💰 Цена: ${parseFloat(item.price).toLocaleString()} UZS`;
                                                                     window.open(`https://t.me/${supportUser}?text=${encodeURIComponent(text)}`, '_blank');
                                                                 }}
                                                             >

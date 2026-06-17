@@ -444,10 +444,10 @@ export const SupplierOrders = () => {
                                                 />
                                             </div>
                                             <div className="form-group">
-                                                <label>Цена за шт ($) / 单价</label>
+                                                <label>Цена за шт (¥) / 单价 (元)</label>
                                                 <input
                                                     type="number"
-                                                    placeholder="45"
+                                                    placeholder="450"
                                                     value={item.price}
                                                     onChange={e => updateOfferItem(item.id, 'price', e.target.value)}
                                                     required

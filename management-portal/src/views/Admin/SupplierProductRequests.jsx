@@ -99,7 +99,7 @@ export const SupplierProductRequests = () => {
                                 <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                                     <span>🚗 {product.brand} {product.model}</span>
                                     <span>📦 Артикул: {product.code}</span>
-                                    <span style={{ color: '#a78bfa', fontWeight: 600 }}>Цена поставщика: ${product.supplier_price || product.price}</span>
+                                    <span style={{ color: '#a78bfa', fontWeight: 600 }}>Цена поставщика: {product.supplier_price || product.price} ¥</span>
                                 </div>
                                 {product.description && (
                                     <p style={{ marginTop: '8px', fontSize: '0.82rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>{product.description}</p>
@@ -111,7 +111,7 @@ export const SupplierProductRequests = () => {
                                 <button
                                     onClick={() => {
                                         setApproving(product);
-                                        setFinalPrice(Math.round((product.supplier_price || product.price) * 1.2));
+                                        setFinalPrice('');
                                     }}
                                     style={{ padding: '8px 16px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid #10b981', color: '#10b981', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                                 >
@@ -145,10 +145,10 @@ export const SupplierProductRequests = () => {
                             </div>
                             <div className="form-group">
                                 <label>Цена поставщика</label>
-                                <input type="text" value={`$${approving.supplier_price || approving.price}`} disabled style={{ opacity: 0.5 }} />
+                                <input type="text" value={`${approving.supplier_price || approving.price} ¥`} disabled style={{ opacity: 0.5 }} />
                             </div>
                             <div className="form-group">
-                                <label>Итоговая цена для клиентов ($)</label>
+                                <label>Итоговая цена для клиентов (UZS)</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -159,7 +159,7 @@ export const SupplierProductRequests = () => {
                                 />
                                 {finalPrice && (
                                     <p style={{ fontSize: '0.8rem', marginTop: '6px', color: '#10b981' }}>
-                                        Ваша маржа: ${(parseFloat(finalPrice) - parseFloat(approving.supplier_price || approving.price)).toFixed(2)}
+                                        Итоговая цена: {parseFloat(finalPrice).toLocaleString()} UZS (поставщик получит: {approving.supplier_price || approving.price} ¥)
                                     </p>
                                 )}
                             </div>

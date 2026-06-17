@@ -139,7 +139,7 @@ export const OrderModeration = () => {
                                 <th>Деталь</th>
                                 <th>Состояние</th>
                                 <th>Поставщик</th>
-                                <th>Цена пост.</th>
+                                <th>Цена пост. (¥)</th>
                                 <th>Действие</th>
                             </tr>
                         </thead>
@@ -170,7 +170,7 @@ export const OrderModeration = () => {
                                             </span>
                                         </td>
                                         <td>{offer.supplier_name}</td>
-                                        <td style={{ fontWeight: 700, color: 'var(--accent-blue)' }}>${offer.price}</td>
+                                        <td style={{ fontWeight: 700, color: 'var(--accent-blue)' }}>{offer.price} ¥</td>
                                         <td>
                                             <button
                                                 className="btn-primary"
@@ -180,7 +180,7 @@ export const OrderModeration = () => {
                                                     setItemName(offer?.item_name || '');
                                                     setDeliveryTime(offer?.delivery_time || '');
                                                     const price = parseFloat(offer?.price || 0);
-                                                    setFinalPrice(isNaN(price) ? 0 : Math.round(price * 1.2));
+                                                    setFinalPrice('');
                                                 }}
                                             >
                                                 <Edit3 size={14} style={{ marginRight: '5px' }} />
@@ -373,7 +373,7 @@ export const OrderModeration = () => {
                                 </div>
 
                                 <div className="form-group">
-                                    <label>Итоговая цена для клиента ($)</label>
+                                    <label>Итоговая цена для клиента (UZS)</label>
                                     <div style={{ position: 'relative' }}>
                                         <DollarSign size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }} />
                                         <input
@@ -385,9 +385,9 @@ export const OrderModeration = () => {
                                         />
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px' }}>
-                                        <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>Цена поставщика: ${approving.price}</span>
+                                        <span style={{ fontSize: '0.75rem', opacity: 0.6 }}>Цена поставщика: {approving.price} ¥</span>
                                         <span style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', fontWeight: 600 }}>
-                                            Маржа: ${(parseFloat(finalPrice || 0) - parseFloat(approving.price)).toFixed(2)}
+                                            Итоговая цена: {parseFloat(finalPrice || 0).toLocaleString()} UZS
                                         </span>
                                     </div>
                                 </div>
