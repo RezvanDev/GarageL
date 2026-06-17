@@ -20,6 +20,7 @@ router.get('/:id/offers', orderController.getOrderOffers);
 // Admin only moderation
 router.get('/pending-offers', restrictTo('admin'), orderController.getPendingOffers);
 router.patch('/offers/:id/approve', restrictTo('admin'), orderController.approveOffer);
+router.get('/admin/analytics', restrictTo('admin'), orderController.getAdminAnalytics);
 
 // Logistics & Flow
 router.post('/select-offer', orderController.selectOffer);

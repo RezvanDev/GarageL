@@ -14,6 +14,7 @@ class Order {
             product_id,
             supplier_id,
             price,
+            supplier_price,
             status,
             delivery_method
         } = orderData;
@@ -21,9 +22,9 @@ class Order {
         const result = await db.query(
             `INSERT INTO orders (
                 client_id, item_name, car_info, description, photo_url, car_brand, year, quantity,
-                product_id, supplier_id, price, status, delivery_method
+                product_id, supplier_id, price, supplier_price, status, delivery_method
              ) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
              RETURNING *`,
             [
                 client_id, 
@@ -37,6 +38,7 @@ class Order {
                 product_id || null,
                 supplier_id || null,
                 price || null,
+                supplier_price || null,
                 status || 'pending',
                 delivery_method || null
             ]

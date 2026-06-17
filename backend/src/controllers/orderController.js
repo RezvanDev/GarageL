@@ -34,6 +34,7 @@ exports.createOrder = async (req, res, next) => {
                 product_id: product.id,
                 supplier_id: product.supplier_id,
                 price: product.price,
+                supplier_price: product.supplier_price || product.price,
                 status: 'offer_selected',
                 delivery_method: deliveryMethod || 'air'
             });
@@ -270,6 +271,7 @@ exports.selectOffer = async (req, res, next) => {
         await Order.update(orderId, {
             status: 'offer_selected',
             price: offer.final_price || offer.price,
+            supplier_price: offer.price,
             supplier_id: offer.supplier_id,
             delivery_method: deliveryMethod
         });
@@ -441,6 +443,63 @@ exports.getLogisticsStats = async (req, res, next) => {
         res.status(200).json({
             status: 'success',
             data: stats.rows[0]
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+exports.getAdminAnalytics = async (req, res, next) => {
+    try {
+        if (req.user.role !== 'admin') {
+            return next(new AppError('Only admins can view analytics', 403));
+        }
+
+        // 1. Detailed orders bought
+        const detailedOrdersResult = await db.query(`
+            SELECT 
+                o.id,
+                o.item_name,
+                o.car_info,
+                o.quantity,
+                o.price as client_price_uzs,
+                o.supplier_price as supplier_price_cny,
+                o.status,
+                o.created_at,
+                u_client.name as client_name,
+                u_client.user_code as client_code,
+                u_supplier.id as supplier_id,
+                u_supplier.name as supplier_name,
+                u_supplier.phone as supplier_phone
+            FROM orders o
+            LEFT JOIN users u_client ON o.client_id = u_client.id
+            LEFT JOIN users u_supplier ON o.supplier_id = u_supplier.id
+            WHERE o.status IN ('paid_product', 'shipped_by_seller', 'logistics_review', 'waiting_delivery_payment', 'delivery_paid', 'shipped_to_uzbekistan', 'delivered')
+            ORDER BY o.created_at DESC
+        `);
+
+        // 2. Summary by supplier (how much money to send)
+        const summaryBySupplierResult = await db.query(`
+            SELECT 
+                u_supplier.id as supplier_id,
+                u_supplier.name as supplier_name,
+                u_supplier.phone as supplier_phone,
+                COUNT(o.id) as total_orders,
+                SUM(COALESCE(o.supplier_price, o.price) * o.quantity) as total_supplier_cny,
+                SUM(COALESCE(o.price, 0) * o.quantity) as total_client_uzs
+            FROM orders o
+            JOIN users u_supplier ON o.supplier_id = u_supplier.id
+            WHERE o.status IN ('paid_product', 'shipped_by_seller', 'logistics_review', 'waiting_delivery_payment', 'delivery_paid', 'shipped_to_uzbekistan', 'delivered')
+            GROUP BY u_supplier.id, u_supplier.name, u_supplier.phone
+            ORDER BY total_supplier_cny DESC
+        `);
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                detailedOrders: detailedOrdersResult.rows,
+                summaryBySupplier: summaryBySupplierResult.rows
+            }
         });
     } catch (err) {
         next(err);

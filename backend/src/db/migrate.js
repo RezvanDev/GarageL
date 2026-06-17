@@ -15,6 +15,7 @@ const runMigrations = async () => {
 
         // 3. Orders table migrations
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS product_id INTEGER REFERENCES products(id);`);
+        await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS supplier_price DECIMAL(10, 2);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_method VARCHAR(20);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS track_number VARCHAR(100);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS weight DECIMAL(10, 2);`);

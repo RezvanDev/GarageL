@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Package, Users, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { LayoutDashboard, Package, Users, CheckCircle2, ShoppingBag, BarChart3 } from 'lucide-react';
 
 import { PortalLayout } from '../components/layout/PortalLayout';
 import { PORTAL_THEMES } from '../constants/portalThemes';
@@ -10,10 +10,12 @@ import { SupplierProductRequests } from '../views/Admin/SupplierProductRequests'
 import { OrderModeration } from '../views/Admin/OrderModeration';
 import { UserManagement } from '../views/Admin/UserManagement';
 import { AdminPayments } from '../views/Admin/AdminPayments';
+import { AdminAnalytics } from '../views/Admin/AdminAnalytics';
 
 const MENU_ITEMS = [
     { path: '/admin', label: 'Дашборд', icon: LayoutDashboard, exact: true },
     { path: '/admin/payments', label: 'Платежи', icon: ShoppingBag },
+    { path: '/admin/analytics', label: 'Аналитика', icon: BarChart3 },
     { path: '/admin/products', label: 'Каталог товаров', icon: Package },
     { path: '/admin/requests', label: 'Заявки поставщиков', icon: ShoppingBag },
     { path: '/admin/moderation', label: 'Модерация заявок', icon: CheckCircle2 },
@@ -25,6 +27,7 @@ export const AdminPortal = ({ user, onLogout }) => (
         <Routes>
             <Route path="/" element={<AdminDashboard />} />
             <Route path="/payments" element={<AdminPayments />} />
+            <Route path="/analytics" element={<AdminAnalytics />} />
             <Route path="/products" element={<ProductManagement />} />
             <Route path="/requests" element={<SupplierProductRequests />} />
             <Route path="/moderation" element={<OrderModeration />} />

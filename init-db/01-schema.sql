@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS orders (
     quantity INTEGER DEFAULT 1,
     status VARCHAR(50) DEFAULT 'pending',
     price DECIMAL(10, 2),
+    supplier_price DECIMAL(10, 2),
     delivery_method VARCHAR(20),
     track_number VARCHAR(100),
     weight DECIMAL(10, 2),

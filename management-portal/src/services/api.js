@@ -142,7 +142,8 @@ export const api = {
             api.request(`/orders/${orderId}/mark-delivered`, {
                 method: 'PATCH'
             }),
-        getLogisticsStats: () => api.request('/orders/logistics-stats')
+        getLogisticsStats: () => api.request('/orders/logistics-stats'),
+        getAdminAnalytics: () => api.request('/orders/admin/analytics')
     },
 
     admin: {
