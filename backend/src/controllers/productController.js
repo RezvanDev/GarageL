@@ -72,15 +72,27 @@ exports.approveProduct = async (req, res, next) => {
             return res.status(400).json({ status: 'fail', message: 'Please provide final price' });
         }
 
-        const product = await Product.update(req.params.id, {
+        const product = await Product.getById(req.params.id);
+        if (!product) {
+            return res.status(404).json({ status: 'fail', message: 'Product not found' });
+        }
+
+        const updateData = {
             price,
             is_approved: true
-        });
+        };
+
+        // Lock the supplier price to the original CNY price if it was not set
+        if (!product.supplier_price) {
+            updateData.supplier_price = product.price;
+        }
+
+        const updatedProduct = await Product.update(req.params.id, updateData);
 
         res.status(200).json({
             status: 'success',
             data: {
-                product
+                product: updatedProduct
             }
         });
     } catch (err) {
@@ -90,24 +102,30 @@ exports.approveProduct = async (req, res, next) => {
 
 exports.updateProduct = async (req, res, next) => {
     try {
-        const data = { ...req.body };
-        if (req.user.role === 'supplier') {
-            data.supplier_price = req.body.price;
-            delete data.price; // Prevent supplier from overwriting the approved UZS price
-            data.is_approved = false; // Mark unapproved when edited
-        }
-
-        const product = await Product.update(req.params.id, data);
+        const product = await Product.getById(req.params.id);
         if (!product) {
             return res.status(404).json({
                 status: 'fail',
                 message: 'Product not found'
             });
         }
+
+        const data = { ...req.body };
+        if (req.user.role === 'supplier') {
+            // Check ownership
+            if (Number(product.supplier_id) !== Number(req.user.id)) {
+                return next(new AppError('У вас нет прав на редактирование этого товара', 403));
+            }
+            data.supplier_price = req.body.price;
+            delete data.price; // Prevent supplier from overwriting the approved UZS price
+            data.is_approved = false; // Mark unapproved when edited
+        }
+
+        const updatedProduct = await Product.update(req.params.id, data);
         res.status(200).json({
             status: 'success',
             data: {
-                product
+                product: updatedProduct
             }
         });
     } catch (err) {

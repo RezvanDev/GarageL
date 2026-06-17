@@ -27,17 +27,22 @@ export const ProductFormModal = ({
         <div className="modal-overlay">
             <div className="glass-card modal-content" onClick={e => e.stopPropagation()}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3>{currentProduct ? 'Редактировать товар' : 'Добавить новый товар'}</h3>
+                    <h3>
+                        {userRole === 'supplier' 
+                            ? (currentProduct ? 'Редактировать товар / 编辑产品' : 'Добавить новый товар / 添加新产品') 
+                            : (currentProduct ? 'Редактировать товар' : 'Добавить новый товар')}
+                    </h3>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}>
                         <X size={24} />
                     </button>
                 </div>
 
                 <form onSubmit={onSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                    {/* ... (rest of form up to the brand select) */}
                     {/* Image Upload Area */}
                     <div style={{ gridColumn: 'span 2' }}>
-                        <label style={{ display: 'block', marginBottom: '10px' }}>Фотографии (макс. 5)</label>
+                        <label style={{ display: 'block', marginBottom: '10px' }}>
+                            {userRole === 'supplier' ? 'Фотографии (макс. 5) / 图片 (最多5张)' : 'Фотографии (макс. 5)'}
+                        </label>
                         <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
                             {formData.image_url && formData.image_url.split(',').filter(Boolean).map((imgUrl, idx) => (
                                 <div key={idx} style={{ position: 'relative', width: '120px', height: '120px', flexShrink: 0 }}>
@@ -89,7 +94,9 @@ export const ProductFormModal = ({
                                     ) : (
                                         <>
                                             <Upload size={24} color="var(--text-dim)" style={{ marginBottom: '8px' }} />
-                                            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>Загрузить ({formData.image_url ? 5 - formData.image_url.split(',').filter(Boolean).length : 5})</span>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--text-dim)' }}>
+                                                {userRole === 'supplier' ? 'Загрузить / 上传' : 'Загрузить'} ({formData.image_url ? 5 - formData.image_url.split(',').filter(Boolean).length : 5})
+                                            </span>
                                         </>
                                     )}
                                 </div>
@@ -98,7 +105,7 @@ export const ProductFormModal = ({
                     </div>
 
                     <div className="form-group">
-                        <label>Бренд</label>
+                        <label>{userRole === 'supplier' ? 'Бренд / 品牌' : 'Бренд'}</label>
                         <select
                             value={formData.brand}
                             onChange={e => setFormData(prev => ({ ...prev, brand: e.target.value, model: '' }))}
@@ -113,7 +120,9 @@ export const ProductFormModal = ({
                                 outline: 'none'
                             }}
                         >
-                            <option value="" style={{ color: 'black' }}>Выберите бренд</option>
+                            <option value="" style={{ color: 'black' }}>
+                                {userRole === 'supplier' ? 'Выберите бренд / 选择品牌' : 'Выберите бренд'}
+                            </option>
                             {availableBrands.map(b => (
                                 <option key={b} value={b} style={{ color: 'black' }}>{b}</option>
                             ))}
@@ -121,7 +130,7 @@ export const ProductFormModal = ({
                     </div>
 
                     <div className="form-group">
-                        <label>Модель</label>
+                        <label>{userRole === 'supplier' ? 'Модель / 车型' : 'Модель'}</label>
                         {formData.brand && CAR_BRANDS[formData.brand] ? (
                             <div style={{ position: 'relative' }}>
                                 <div
@@ -140,7 +149,7 @@ export const ProductFormModal = ({
                                     }}
                                 >
                                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {formData.model || 'Выберите модели'}
+                                        {formData.model || (userRole === 'supplier' ? 'Выберите модели / 选择车型' : 'Выберите модели')}
                                     </span>
                                     <ChevronDown size={18} />
                                 </div>
@@ -195,7 +204,7 @@ export const ProductFormModal = ({
                         ) : (
                             <input
                                 type="text"
-                                placeholder="Сначала выберите бренд"
+                                placeholder={userRole === 'supplier' ? 'Сначала выберите бренд / 请先选择品牌' : 'Сначала выберите бренд'}
                                 value={formData.model}
                                 onChange={e => setFormData(prev => ({ ...prev, model: e.target.value }))}
                                 required
@@ -205,7 +214,7 @@ export const ProductFormModal = ({
                     </div>
 
                     <div className="form-group">
-                        <label>Название</label>
+                        <label>{userRole === 'supplier' ? 'Название / 品名' : 'Название'}</label>
                         <input
                             type="text"
                             value={formData.name}
@@ -214,7 +223,7 @@ export const ProductFormModal = ({
                         />
                     </div>
                     <div className="form-group">
-                        <label>Артикул</label>
+                        <label>{userRole === 'supplier' ? 'Артикул / 零件号' : 'Артикул'}</label>
                         <input
                             type="text"
                             value={formData.code}
@@ -223,7 +232,11 @@ export const ProductFormModal = ({
                         />
                     </div>
                     <div className="form-group">
-                        <label>{userRole === 'supplier' ? 'Ваша цена (¥)' : 'Цена для клиентов (UZS)'}</label>
+                        <label>
+                            {userRole === 'supplier' 
+                                ? 'Ваша цена (¥) / 您的价格 (¥)' 
+                                : 'Цена для клиентов (UZS)'}
+                        </label>
                         <input
                             type="number"
                             step="0.01"
@@ -233,7 +246,7 @@ export const ProductFormModal = ({
                         />
                     </div>
                     <div className="form-group">
-                        <label>Количество (шт)</label>
+                        <label>{userRole === 'supplier' ? 'Количество (шт) / 数量 (件)' : 'Количество (шт)'}</label>
                         <input
                             type="number"
                             min="1"
@@ -243,7 +256,7 @@ export const ProductFormModal = ({
                         />
                     </div>
                     <div className="form-group" style={{ gridColumn: 'span 2' }}>
-                        <label>Описание (необязательно)</label>
+                        <label>{userRole === 'supplier' ? 'Описание (необязательно) / 备注 (选填)' : 'Описание (необязательно)'}</label>
                         <textarea
                             value={formData.description}
                             onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
@@ -266,7 +279,9 @@ export const ProductFormModal = ({
                         style={{ gridColumn: 'span 2', marginTop: '10px' }}
                         disabled={isUploading}
                     >
-                        {currentProduct ? 'СОХРАНИТЬ' : 'СОЗДАТЬ'}
+                        {userRole === 'supplier'
+                            ? (currentProduct ? 'СОХРАНИТЬ / 保存' : 'СОЗДАТЬ / 创建')
+                            : (currentProduct ? 'СОХРАНИТЬ' : 'СОЗДАТЬ')}
                     </button>
                 </form>
             </div>
