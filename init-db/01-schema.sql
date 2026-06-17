@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS orders (
     id SERIAL PRIMARY KEY,
     client_id INTEGER REFERENCES users(id),
     supplier_id INTEGER REFERENCES users(id),
+    product_id INTEGER REFERENCES products(id),
     item_name TEXT NOT NULL,
     car_info TEXT, -- brand model vin
     car_brand VARCHAR(100),

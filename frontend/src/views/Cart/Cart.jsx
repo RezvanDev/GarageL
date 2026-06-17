@@ -5,6 +5,7 @@ import { GlassCard } from '../../components/common/UI';
 import { ImageCarousel } from '../../components/common/ImageCarousel';
 
 export const Cart = ({ cart, removeFromCart, updateCartQuantity, checkoutCart, navigate }) => {
+    const [deliveryMethod, setDeliveryMethod] = React.useState('air');
     const total = cart.reduce((acc, item) => acc + (parseFloat(item.price) * (item.quantity || 1)), 0);
     const totalItems = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
 
@@ -205,6 +206,63 @@ export const Cart = ({ cart, removeFromCart, updateCartQuantity, checkoutCart, n
                             </div>
 
                             <div style={{ 
+                                padding: '15px', 
+                                background: 'rgba(255,255,255,0.03)', 
+                                borderRadius: '12px', 
+                                border: '1px solid rgba(255,255,255,0.05)',
+                                marginTop: '10px',
+                                marginBottom: '5px'
+                            }}>
+                                <p style={{ fontSize: '0.85rem', fontWeight: 600, opacity: 0.8, marginBottom: '10px' }}>Выберите способ доставки:</p>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <button 
+                                        onClick={() => setDeliveryMethod('air')}
+                                        style={{ 
+                                            flex: 1, 
+                                            padding: '12px 8px', 
+                                            borderRadius: '10px', 
+                                            border: deliveryMethod === 'air' ? '2px solid var(--accent-blue)' : '1px solid rgba(255,255,255,0.1)', 
+                                            background: deliveryMethod === 'air' ? 'rgba(14,165,233,0.1)' : 'transparent',
+                                            color: deliveryMethod === 'air' ? 'var(--accent-blue)' : '#fff',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1.2rem' }}>✈️</span>
+                                        Авиа ($13/кг)
+                                    </button>
+                                    <button 
+                                        onClick={() => setDeliveryMethod('truck')}
+                                        style={{ 
+                                            flex: 1, 
+                                            padding: '12px 8px', 
+                                            borderRadius: '10px', 
+                                            border: deliveryMethod === 'truck' ? '2px solid var(--accent-blue)' : '1px solid rgba(255,255,255,0.1)', 
+                                            background: deliveryMethod === 'truck' ? 'rgba(14,165,233,0.1)' : 'transparent',
+                                            color: deliveryMethod === 'truck' ? 'var(--accent-blue)' : '#fff',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 700,
+                                            transition: 'all 0.2s',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '1.2rem' }}>🚛</span>
+                                        Авто ($6/кг)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={{ 
                                 display: 'flex', 
                                 justifyContent: 'space-between', 
                                 fontWeight: 800, 
@@ -222,7 +280,7 @@ export const Cart = ({ cart, removeFromCart, updateCartQuantity, checkoutCart, n
                             <button 
                                 className="btn-primary" 
                                 style={{ marginTop: '15px', width: '100%', padding: '16px', fontSize: '0.9rem' }}
-                                onClick={checkoutCart}
+                                onClick={() => checkoutCart(deliveryMethod)}
                             >
                                 Оформить заказ
                             </button>

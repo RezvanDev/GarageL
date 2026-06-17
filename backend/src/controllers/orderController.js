@@ -1,35 +1,71 @@
 const Order = require('../models/orderModel');
 const Offer = require('../models/offerModel');
+const Product = require('../models/productModel');
 const AppError = require('../utils/appError');
 const db = require('../db');
 const telegramService = require('../services/telegramService');
 
 exports.createOrder = async (req, res, next) => {
     try {
-        let { itemName, carInfo, description, photoUrl, carBrand, year, quantity } = req.body;
+        let { productId, deliveryMethod, itemName, carInfo, description, photoUrl, carBrand, year, quantity } = req.body;
 
-        if (!itemName) {
-            return next(new AppError('Item name is required', 400));
+        let newOrder;
+
+        if (productId) {
+            const product = await Product.getById(productId);
+            if (!product) {
+                return next(new AppError('Товар не найден', 404));
+            }
+            if (!product.is_approved) {
+                return next(new AppError('Товар еще не одобрен администратором', 400));
+            }
+
+            const parsedQuantity = quantity ? parseInt(quantity, 10) : 1;
+
+            newOrder = await Order.create({
+                client_id: req.user.id,
+                item_name: product.name,
+                car_info: `${product.brand} ${product.model}`,
+                description: product.description || `Заказ товара из каталога (Артикул: ${product.code})`,
+                photo_url: product.image_url,
+                car_brand: product.brand,
+                year: '',
+                quantity: parsedQuantity,
+                product_id: product.id,
+                supplier_id: product.supplier_id,
+                price: product.price,
+                status: 'offer_selected',
+                delivery_method: deliveryMethod || 'air'
+            });
+
+            // Notify client and specific supplier asynchronously
+            telegramService.notifyOrderUpdate(newOrder.id, 'offer_selected').catch(err => console.error(err));
+            telegramService.notifySupplierOrderUpdate(newOrder.id, 'offer_selected').catch(err => console.error(err));
+
+        } else {
+            if (!itemName) {
+                return next(new AppError('Item name is required', 400));
+            }
+
+            // Fallback for cached frontends that omit carBrand: extract first word from carInfo
+            if (!carBrand && carInfo) {
+                carBrand = carInfo.split(' ')[0];
+            }
+
+            newOrder = await Order.create({
+                client_id: req.user.id,
+                item_name: itemName,
+                car_info: carInfo,
+                description,
+                photo_url: photoUrl,
+                car_brand: carBrand,
+                year,
+                quantity: quantity ? parseInt(quantity, 10) : 1
+            });
+
+            // Notify all suppliers about new order
+            telegramService.notifyNewOrderToSuppliers(newOrder).catch(err => console.error(err));
         }
-
-        // Fallback for cached frontends that omit carBrand: extract first word from carInfo
-        if (!carBrand && carInfo) {
-            carBrand = carInfo.split(' ')[0];
-        }
-
-        const newOrder = await Order.create({
-            client_id: req.user.id,
-            item_name: itemName,
-            car_info: carInfo,
-            description,
-            photo_url: photoUrl,
-            car_brand: carBrand,
-            year,
-            quantity: quantity ? parseInt(quantity, 10) : 1
-        });
-
-        // Notify suppliers about new order
-        await telegramService.notifyNewOrderToSuppliers(newOrder);
 
         res.status(201).json({
             status: 'success',
@@ -190,7 +226,7 @@ exports.approveOffer = async (req, res, next) => {
 
         // Update order status to offer_created (renamed from offered for consistency)
         await Order.update(approvedOffer.order_id, { status: 'offer_created' });
-        
+
         // Notify client via Telegram
         await telegramService.notifyOrderUpdate(approvedOffer.order_id, 'offer_created');
 
@@ -210,7 +246,7 @@ exports.approveOffer = async (req, res, next) => {
 exports.selectOffer = async (req, res, next) => {
     try {
         const { orderId, offerId, deliveryMethod } = req.body;
-        
+
         const order = await Order.getById(orderId);
         if (!order) {
             return next(new AppError('Заказ не найден', 404));
@@ -228,7 +264,7 @@ exports.selectOffer = async (req, res, next) => {
         if (Number(offer.order_id) !== Number(orderId)) {
             return next(new AppError('Это предложение не относится к данному заказу', 400));
         }
-        
+
         await Order.update(orderId, {
             status: 'offer_selected',
             price: offer.final_price || offer.price,
@@ -251,7 +287,7 @@ exports.confirmProductPayment = async (req, res, next) => {
     try {
         if (req.user.role !== 'admin') return next(new AppError('Admin only', 403));
         const { orderId } = req.params;
-        
+
         await Order.update(orderId, { status: 'paid_product' });
         await telegramService.notifyOrderUpdate(orderId, 'paid_product');
         await telegramService.notifySupplierOrderUpdate(orderId, 'paid_product');
@@ -265,7 +301,7 @@ exports.updateTrackNumber = async (req, res, next) => {
     try {
         const { orderId, trackNumber } = req.body;
         const order = await Order.getById(orderId);
-        
+
         if (req.user.role !== 'supplier' || order.supplier_id !== req.user.id) {
             return next(new AppError('Wrong supplier', 403));
         }
@@ -289,7 +325,7 @@ exports.receiveAtWarehouse = async (req, res, next) => {
         }
 
         const { orderId, weight, dimensions, shippingPrice, photoUrl } = req.body;
-        
+
         await Order.update(orderId, {
             weight,
             dimensions,
@@ -310,7 +346,7 @@ exports.approveLogistics = async (req, res, next) => {
     try {
         if (req.user.role !== 'admin') return next(new AppError('Admin only', 403));
         const { orderId, finalShippingPrice } = req.body;
-        
+
         await Order.update(orderId, {
             shipping_price: finalShippingPrice,
             status: 'waiting_delivery_payment'
@@ -326,7 +362,7 @@ exports.confirmDeliveryPayment = async (req, res, next) => {
     try {
         if (req.user.role !== 'admin') return next(new AppError('Admin only', 403));
         const { orderId } = req.params;
-        
+
         await Order.update(orderId, { status: 'delivery_paid' });
         await telegramService.notifyOrderUpdate(orderId, 'delivery_paid');
         res.status(200).json({ status: 'success' });
@@ -339,7 +375,7 @@ exports.shipToUzbekistan = async (req, res, next) => {
     try {
         if (req.user.role !== 'logist' && req.user.role !== 'admin') return next(new AppError('Logist/Admin only', 403));
         const { orderId, shippingTrackNumber } = req.body;
-        
+
         await Order.update(orderId, {
             shipping_track_number: shippingTrackNumber,
             status: 'shipped_to_uzbekistan'
@@ -355,7 +391,7 @@ exports.markDelivered = async (req, res, next) => {
     try {
         if (req.user.role !== 'logist' && req.user.role !== 'admin') return next(new AppError('Logist/Admin only', 403));
         const { orderId } = req.params;
-        
+
         await Order.update(orderId, { status: 'delivered' });
         await telegramService.notifyOrderUpdate(orderId, 'delivered');
         res.status(200).json({ status: 'success' });
@@ -368,14 +404,14 @@ exports.getOrdersByStatus = async (req, res, next) => {
     try {
         const { statuses } = req.query; // e.g. status1,status2
         const statusList = statuses ? statuses.split(',') : [];
-        
+
         let orders = await Order.getByStatus(statusList);
-        
+
         // Security: Suppliers only see their own orders
         if (req.user.role === 'supplier') {
             orders = orders.filter(o => Number(o.supplier_id) === Number(req.user.id));
         }
-        
+
         res.status(200).json({
             status: 'success',
             data: { orders }

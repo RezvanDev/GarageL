@@ -2,13 +2,44 @@ const db = require('../db');
 
 class Order {
     static async create(orderData) {
-        const { client_id, item_name, car_info, description, photo_url, car_brand, year, quantity } = orderData;
+        const { 
+            client_id, 
+            item_name, 
+            car_info, 
+            description, 
+            photo_url, 
+            car_brand, 
+            year, 
+            quantity,
+            product_id,
+            supplier_id,
+            price,
+            status,
+            delivery_method
+        } = orderData;
 
         const result = await db.query(
-            `INSERT INTO orders (client_id, item_name, car_info, description, photo_url, car_brand, year, quantity) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+            `INSERT INTO orders (
+                client_id, item_name, car_info, description, photo_url, car_brand, year, quantity,
+                product_id, supplier_id, price, status, delivery_method
+             ) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
              RETURNING *`,
-            [client_id, item_name, car_info, description, photo_url, car_brand, year, quantity || 1]
+            [
+                client_id, 
+                item_name, 
+                car_info, 
+                description, 
+                photo_url, 
+                car_brand, 
+                year, 
+                quantity || 1,
+                product_id || null,
+                supplier_id || null,
+                price || null,
+                status || 'pending',
+                delivery_method || null
+            ]
         );
 
         return result.rows[0];

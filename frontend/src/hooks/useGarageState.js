@@ -118,24 +118,13 @@ export const useGarageState = () => {
         setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item));
     }, []);
 
-    const checkoutCart = useCallback(async () => {
+    const checkoutCart = useCallback(async (deliveryMethod) => {
         setIsLoading(true);
         try {
             for (const item of cart) {
-                let photoUrl = null;
-                if (Array.isArray(item.image_url)) {
-                    photoUrl = item.image_url.join(',');
-                } else if (typeof item.image_url === 'string') {
-                    photoUrl = item.image_url;
-                }
-
                 await api.orders.create({
-                    itemName: item.name,
-                    carInfo: `${item.brand} ${item.model}`,
-                    description: item.description || `Заказ товара из каталога (Артикул: ${item.code})`,
-                    photoUrl,
-                    carBrand: item.brand,
-                    year: '',
+                    productId: item.id,
+                    deliveryMethod: deliveryMethod || 'air',
                     quantity: item.quantity || 1
                 });
             }
