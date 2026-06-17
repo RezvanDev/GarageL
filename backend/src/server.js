@@ -11,6 +11,7 @@ const { protect, restrictTo } = require('./middleware/authMiddleware');
 const path = require('path');
 const telegramRoutes = require('./routes/telegramRoutes');
 const telegramService = require('./services/telegramService');
+const runMigrations = require('./db/migrate');
 
 // Load environment variables
 dotenv.config();
@@ -82,6 +83,9 @@ app.use(globalErrorHandler);
 // START SERVER
 app.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
+
+    // Run database migrations
+    await runMigrations();
 
     // Initialize Telegram Webhook
     await telegramService.initWebhook();
