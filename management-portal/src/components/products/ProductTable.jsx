@@ -9,16 +9,23 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                 <thead>
                     <tr style={{ borderBottom: '1px solid var(--glass-border)', background: 'rgba(255, 255, 255, 0.02)' }}>
                         <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>ID</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Фото / 图片</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Товар / 名称</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Авто / 车</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Артикул / 零件号</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>В наличии / 库存</th>
-                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Цена / 价格</th>
-                        {isSupplier && (
-                            <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Статус / 状态</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Фото</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Товар</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Авто</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Артикул</th>
+                        <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>В наличии</th>
+                        {isSupplier ? (
+                            <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Цена (¥)</th>
+                        ) : (
+                            <>
+                                <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Цена поставщика (¥)</th>
+                                <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Цена для клиентов (UZS)</th>
+                            </>
                         )}
-                        <th style={{ padding: '16px', textAlign: 'right', color: 'var(--text-dim)', fontWeight: 600 }}>Действия / 操作</th>
+                        {isSupplier && (
+                            <th style={{ padding: '16px', textAlign: 'left', color: 'var(--text-dim)', fontWeight: 600 }}>Статус</th>
+                        )}
+                        <th style={{ padding: '16px', textAlign: 'right', color: 'var(--text-dim)', fontWeight: 600 }}>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -48,28 +55,36 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                                     fontSize: '0.8rem', 
                                     fontWeight: 700 
                                 }}>
-                                    {product.quantity || 0} шт/件
+                                    {product.quantity || 0} шт.
                                 </span>
                             </td>
-                            <td style={{ padding: '16px', fontWeight: 600 }}>
-                                {isSupplier ? (
-                                    `¥${product.supplier_price || product.price}`
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span>{parseFloat(product.price).toLocaleString()} UZS</span>
-                                        {product.supplier_price && product.supplier_price !== product.price && (
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 400 }}>
-                                                (от пост.: {product.supplier_price} ¥)
+                            {isSupplier ? (
+                                <td style={{ padding: '16px', fontWeight: 600 }}>
+                                    ¥{product.supplier_price || product.price}
+                                </td>
+                            ) : (
+                                <>
+                                    <td style={{ padding: '16px', fontWeight: 600 }}>
+                                        {product.supplier_price || product.price} ¥
+                                    </td>
+                                    <td style={{ padding: '16px', fontWeight: 600 }}>
+                                        {product.is_approved ? (
+                                            <span style={{ color: '#00ff88' }}>
+                                                {parseFloat(product.price).toLocaleString()} UZS
+                                            </span>
+                                        ) : (
+                                            <span style={{ color: '#f59e0b', fontWeight: 400, fontSize: '0.85rem' }}>
+                                                Ожидает одобрения
                                             </span>
                                         )}
-                                    </div>
-                                )}
-                            </td>
+                                    </td>
+                                </>
+                            )}
                             {isSupplier && (
                                 <td style={{ padding: '16px' }}>
                                     {product.is_approved
-                                        ? <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.75rem', fontWeight: 600 }}>Одобрен / 已批准</span>
-                                        : <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600 }}>На проверке / 审核中</span>
+                                        ? <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.75rem', fontWeight: 600 }}>Одобрен</span>
+                                        : <span style={{ padding: '4px 8px', borderRadius: '20px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', fontSize: '0.75rem', fontWeight: 600 }}>На проверке</span>
                                     }
                                 </td>
                             )}
@@ -93,8 +108,8 @@ export const ProductTable = ({ products, onEdit, onDelete, isSupplier }) => {
                     ))}
                     {products.length === 0 && (
                         <tr>
-                            <td colSpan={isSupplier ? 9 : 8} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)' }}>
-                                Товары не найдены / 未找到产品
+                            <td colSpan={9} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-dim)' }}>
+                                Товары не найдены
                             </td>
                         </tr>
                     )}

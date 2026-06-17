@@ -90,7 +90,14 @@ exports.approveProduct = async (req, res, next) => {
 
 exports.updateProduct = async (req, res, next) => {
     try {
-        const product = await Product.update(req.params.id, req.body);
+        const data = { ...req.body };
+        if (req.user.role === 'supplier') {
+            data.supplier_price = req.body.price;
+            delete data.price; // Prevent supplier from overwriting the approved UZS price
+            data.is_approved = false; // Mark unapproved when edited
+        }
+
+        const product = await Product.update(req.params.id, data);
         if (!product) {
             return res.status(404).json({
                 status: 'fail',

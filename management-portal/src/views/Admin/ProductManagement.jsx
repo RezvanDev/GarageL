@@ -169,7 +169,7 @@ export const ProductManagement = () => {
         <div className="fade-in">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>
-                    {user?.role === 'supplier' ? 'Мои товары / 我的产品' : 'Товары / 产品'}
+                    {user?.role === 'supplier' ? 'Мои товары' : 'Товары'}
                 </h2>
 
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -177,7 +177,7 @@ export const ProductManagement = () => {
                         <Search size={18} style={{ position: 'absolute', left: '15px', color: 'var(--text-dim)' }} />
                         <input
                             type="text"
-                            placeholder="Поиск... / 搜索..."
+                            placeholder="Поиск..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{
@@ -193,7 +193,7 @@ export const ProductManagement = () => {
                     </div>
                     {user?.role === 'supplier' && (
                         <button className="btn-primary" onClick={() => handleOpenModal()} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <Plus size={20} /> Товар / 产品
+                            <Plus size={20} /> Товар
                         </button>
                     )}
                 </div>
@@ -220,7 +220,7 @@ export const ProductManagement = () => {
 
             <div style={{ background: 'rgba(255, 255, 255, 0.02)', borderRadius: '16px', padding: '20px', border: '1px solid var(--glass-border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Все товары / 所有产品</h2>
+                    <h2 style={{ fontSize: '1.2rem', fontWeight: 700 }}>Все товары</h2>
                 </div>
 
                 <ProductTable
