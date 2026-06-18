@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
-import { TrendingUp, Users, DollarSign, ShoppingBag, Loader2, Search } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { 
+    ArrowTrendingUpIcon, 
+    WalletIcon, 
+    ShoppingBagIcon, 
+    UsersIcon, 
+    MagnifyingGlassIcon 
+} from '@heroicons/react/24/solid';
 
 export const AdminAnalytics = () => {
     const [analyticsData, setAnalyticsData] = useState(null);
@@ -80,8 +87,8 @@ export const AdminAnalytics = () => {
             {/* Financial Summary Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '35px' }}>
                 <div className="glass-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ background: 'rgba(0, 255, 136, 0.1)', padding: '12px', borderRadius: '12px' }}>
-                        <TrendingUp size={28} color="#00ff88" />
+                    <div style={{ background: 'rgba(0, 255, 136, 0.1)', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ArrowTrendingUpIcon style={{ width: '28px', height: '28px', color: '#00ff88' }} />
                     </div>
                     <div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Общий оборот продаж</div>
@@ -92,8 +99,8 @@ export const AdminAnalytics = () => {
                 </div>
 
                 <div className="glass-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ background: 'rgba(14, 165, 233, 0.1)', padding: '12px', borderRadius: '12px' }}>
-                        <DollarSign size={28} color="var(--accent-blue)" />
+                    <div style={{ background: 'rgba(14, 165, 233, 0.1)', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <WalletIcon style={{ width: '28px', height: '28px', color: 'var(--accent-blue)' }} />
                     </div>
                     <div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '4px' }}>К выплате продавцам</div>
@@ -104,8 +111,8 @@ export const AdminAnalytics = () => {
                 </div>
 
                 <div className="glass-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ background: 'rgba(167, 139, 250, 0.1)', padding: '12px', borderRadius: '12px' }}>
-                        <ShoppingBag size={28} color="#a78bfa" />
+                    <div style={{ background: 'rgba(167, 139, 250, 0.1)', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ShoppingBagIcon style={{ width: '28px', height: '28px', color: '#a78bfa' }} />
                     </div>
                     <div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Оплаченных заказов</div>
@@ -116,8 +123,8 @@ export const AdminAnalytics = () => {
                 </div>
 
                 <div className="glass-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-                    <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '12px', borderRadius: '12px' }}>
-                        <Users size={28} color="#f59e0b" />
+                    <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '12px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <UsersIcon style={{ width: '28px', height: '28px', color: '#f59e0b' }} />
                     </div>
                     <div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', marginBottom: '4px' }}>Активных поставщиков</div>
@@ -154,7 +161,7 @@ export const AdminAnalytics = () => {
                 </div>
 
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '280px' }}>
-                    <Search size={18} style={{ position: 'absolute', left: '15px', color: 'var(--text-dim)' }} />
+                    <MagnifyingGlassIcon style={{ position: 'absolute', left: '15px', color: 'var(--text-dim)', width: '18px', height: '18px' }} />
                     <input
                         type="text"
                         placeholder="Поиск..."
