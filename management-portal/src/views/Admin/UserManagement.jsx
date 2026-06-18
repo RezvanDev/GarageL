@@ -37,15 +37,26 @@ export const UserManagement = () => {
         name: '',
         password: '',
         role: 'client',
-        allowedBrands: []
+        allowedBrands: [],
+        logisticsType: 'air'
     });
 
     const handleRoleChange = async (userId, newRole) => {
         try {
-            await api.admin.updateUserRole(userId, newRole);
-            setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
+            const defaultLogisticsType = newRole === 'logist' ? 'air' : null;
+            await api.admin.updateUserRole(userId, newRole, null, defaultLogisticsType);
+            setUsers(users.map(u => u.id === userId ? { ...u, role: newRole, logistics_type: defaultLogisticsType } : u));
         } catch (err) {
             alert('Ошибка при смене роли: ' + err.message);
+        }
+    };
+
+    const handleLogisticsTypeChange = async (userId, role, newLogisticsType) => {
+        try {
+            await api.admin.updateUserRole(userId, role, null, newLogisticsType);
+            setUsers(users.map(u => u.id === userId ? { ...u, logistics_type: newLogisticsType } : u));
+        } catch (err) {
+            alert('Ошибка при смене специализации: ' + err.message);
         }
     };
 
@@ -79,7 +90,7 @@ export const UserManagement = () => {
             const res = await api.admin.createUser(newUserForm);
             setUsers([res.data.user, ...users]);
             setIsCreateModalOpen(false);
-            setNewUserForm({ phone: '', name: '', password: '', role: 'client', allowedBrands: [] });
+            setNewUserForm({ phone: '', name: '', password: '', role: 'client', allowedBrands: [], logisticsType: 'air' });
             alert('Пользователь успешно создан!');
         } catch (err) {
             alert('Ошибка при создании: ' + err.message);
@@ -179,24 +190,45 @@ export const UserManagement = () => {
                                 </td>
                                 <td style={{ padding: '20px', color: 'var(--text-dim)' }}>{user.phone}</td>
                                 <td style={{ padding: '20px' }}>
-                                    <select
-                                        value={user.role}
-                                        onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                        style={{
-                                            background: 'rgba(255,255,255,0.05)',
-                                            border: '1px solid var(--glass-border)',
-                                            borderRadius: '6px',
-                                            color: '#fff',
-                                            padding: '4px 8px',
-                                            outline: 'none',
-                                            fontSize: '0.85rem'
-                                        }}
-                                    >
-                                        <option value="client">Клиент</option>
-                                        <option value="supplier">Поставщик</option>
-                                        <option value="logist">Логист</option>
-                                        <option value="admin">Админ</option>
-                                    </select>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                        <select
+                                            value={user.role}
+                                            onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                            style={{
+                                                background: 'rgba(255,255,255,0.05)',
+                                                border: '1px solid var(--glass-border)',
+                                                borderRadius: '6px',
+                                                color: '#fff',
+                                                padding: '4px 8px',
+                                                outline: 'none',
+                                                fontSize: '0.85rem'
+                                            }}
+                                        >
+                                            <option value="client">Клиент</option>
+                                            <option value="supplier">Поставщик</option>
+                                            <option value="logist">Логист</option>
+                                            <option value="admin">Админ</option>
+                                        </select>
+                                        {user.role === 'logist' && (
+                                            <select
+                                                value={user.logistics_type || 'air'}
+                                                onChange={(e) => handleLogisticsTypeChange(user.id, user.role, e.target.value)}
+                                                style={{
+                                                    background: 'rgba(0, 255, 136, 0.1)',
+                                                    border: '1px solid rgba(0, 255, 136, 0.2)',
+                                                    borderRadius: '6px',
+                                                    color: '#00ff88',
+                                                    padding: '4px 8px',
+                                                    outline: 'none',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                <option value="air" style={{ background: 'var(--bg-dark)', color: '#fff' }}>✈️ Авиа</option>
+                                                <option value="auto" style={{ background: 'var(--bg-dark)', color: '#fff' }}>🚛 Авто</option>
+                                            </select>
+                                        )}
+                                    </div>
                                 </td>
                                 <td style={{ padding: '20px' }}>
                                     <button
@@ -290,7 +322,7 @@ export const UserManagement = () => {
                                 <label>Роль</label>
                                 <select
                                     value={newUserForm.role}
-                                    onChange={e => setNewUserForm({ ...newUserForm, role: e.target.value, allowedBrands: [] })}
+                                    onChange={e => setNewUserForm({ ...newUserForm, role: e.target.value, allowedBrands: [], logisticsType: e.target.value === 'logist' ? 'air' : null })}
                                     style={{
                                         width: '100%',
                                         padding: '12px 15px',
@@ -307,6 +339,28 @@ export const UserManagement = () => {
                                     <option value="admin">Админ</option>
                                 </select>
                             </div>
+
+                            {newUserForm.role === 'logist' && (
+                                <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+                                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Специализация логиста:</label>
+                                    <select
+                                        value={newUserForm.logisticsType || 'air'}
+                                        onChange={e => setNewUserForm({ ...newUserForm, logisticsType: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 15px',
+                                            background: 'var(--glass-bg)',
+                                            border: '1px solid var(--glass-border)',
+                                            borderRadius: '12px',
+                                            color: '#fff',
+                                            outline: 'none'
+                                        }}
+                                    >
+                                        <option value="air">✈️ Авиа</option>
+                                        <option value="auto">🚛 Авто</option>
+                                    </select>
+                                </div>
+                            )}
 
                             {newUserForm.role === 'supplier' && (
                                 <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>

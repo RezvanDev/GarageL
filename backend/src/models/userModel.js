@@ -6,13 +6,13 @@ const AppError = require('../utils/appError');
 class User {
     static async findByPhone(phone) {
         const result = await db.query(
-            'SELECT u.id, u.phone, u.password_hash, u.name, u.user_code, u.allowed_brands, u.telegram_chat_id, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.phone = $1',
+            'SELECT u.id, u.phone, u.password_hash, u.name, u.user_code, u.allowed_brands, u.logistics_type, u.telegram_chat_id, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.phone = $1',
             [phone]
         );
         return result.rows[0];
     }
 
-    static async create({ phone, password, name, roleName, allowedBrands }) {
+    static async create({ phone, password, name, roleName, allowedBrands, logisticsType }) {
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Get role ID
@@ -22,8 +22,8 @@ class User {
         const roleId = roleResult.rows[0].id;
 
         const result = await db.query(
-            'INSERT INTO users (phone, password_hash, name, role_id, allowed_brands) VALUES ($1, $2, $3, $4, $5) RETURNING id, phone, name, allowed_brands',
-            [phone, hashedPassword, name, roleId, JSON.stringify(allowedBrands || [])]
+            'INSERT INTO users (phone, password_hash, name, role_id, allowed_brands, logistics_type) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, phone, name, allowed_brands, logistics_type',
+            [phone, hashedPassword, name, roleId, JSON.stringify(allowedBrands || []), logisticsType || null]
         );
 
         const newUser = result.rows[0];
@@ -38,7 +38,7 @@ class User {
 
     static async findById(id) {
         const result = await db.query(
-            'SELECT u.id, u.phone, u.name, u.user_code, u.allowed_brands, u.telegram_chat_id, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = $1',
+            'SELECT u.id, u.phone, u.name, u.user_code, u.allowed_brands, u.logistics_type, u.telegram_chat_id, r.name as role FROM users u JOIN roles r ON u.role_id = r.id WHERE u.id = $1',
             [id]
         );
         return result.rows[0];
@@ -46,20 +46,38 @@ class User {
 
     static async findAll() {
         const result = await db.query(
-            'SELECT u.id, u.phone, u.name, u.user_code, u.allowed_brands, r.name as role, u.created_at FROM users u JOIN roles r ON u.role_id = r.id ORDER BY u.created_at DESC'
+            'SELECT u.id, u.phone, u.name, u.user_code, u.allowed_brands, u.logistics_type, r.name as role, u.created_at FROM users u JOIN roles r ON u.role_id = r.id ORDER BY u.created_at DESC'
         );
         return result.rows;
     }
 
-    static async updateRole(userId, roleName) {
+    static async updateRole(userId, roleName, allowedBrands = null, logisticsType = null) {
         const roleResult = await db.query('SELECT id FROM roles WHERE name = $1', [roleName]);
         if (roleResult.rows.length === 0) throw new AppError('Invalid role', 400);
 
         const roleId = roleResult.rows[0].id;
-        const result = await db.query(
-            'UPDATE users SET role_id = $1 WHERE id = $2 RETURNING id, phone, name',
-            [roleId, userId]
-        );
+        
+        let queryStr = 'UPDATE users SET role_id = $1';
+        let params = [roleId, userId];
+        let paramIndex = 3;
+
+        if (allowedBrands !== null) {
+            queryStr += `, allowed_brands = $${paramIndex}`;
+            params.push(JSON.stringify(allowedBrands));
+            paramIndex++;
+        }
+        if (logisticsType !== null) {
+            queryStr += `, logistics_type = $${paramIndex}`;
+            params.push(logisticsType);
+            paramIndex++;
+        } else if (roleName !== 'logist') {
+            // Clear logistics type if they are no longer a logist
+            queryStr += `, logistics_type = NULL`;
+        }
+
+        queryStr += ` WHERE id = $2 RETURNING id, phone, name, allowed_brands, logistics_type`;
+        
+        const result = await db.query(queryStr, params);
         return result.rows[0];
     }
 

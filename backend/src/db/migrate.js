@@ -7,6 +7,7 @@ const runMigrations = async () => {
         // 1. Users table migrations
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS user_code VARCHAR(20) UNIQUE;`);
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS allowed_brands JSONB DEFAULT '[]'::jsonb;`);
+        await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logistics_type VARCHAR(20);`);
 
         // 2. Products table migrations
         await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS supplier_id INTEGER REFERENCES users(id);`);

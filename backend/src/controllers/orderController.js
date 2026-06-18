@@ -416,6 +416,14 @@ exports.getOrdersByStatus = async (req, res, next) => {
             orders = orders.filter(o => Number(o.supplier_id) === Number(req.user.id));
         }
 
+        // Logistics separation: Logists only see orders matching their logistics type
+        if (req.user.role === 'logist') {
+            const logisticsType = req.user.logistics_type;
+            if (logisticsType) {
+                orders = orders.filter(o => o.delivery_method === logisticsType);
+            }
+        }
+
         res.status(200).json({
             status: 'success',
             data: { orders }
@@ -430,7 +438,7 @@ exports.getLogisticsStats = async (req, res, next) => {
             return next(new AppError('Unauthorized', 403));
         }
 
-        const stats = await db.query(`
+        let queryStr = `
             SELECT 
                 COUNT(*) FILTER (WHERE status = 'shipped_by_seller') as to_receive,
                 COUNT(*) FILTER (WHERE status = 'arrived_warehouse') as in_warehouse,
@@ -438,7 +446,14 @@ exports.getLogisticsStats = async (req, res, next) => {
                 COUNT(*) FILTER (WHERE status = 'delivery_paid') as ready_to_ship,
                 COUNT(*) FILTER (WHERE status = 'shipped_to_uzbekistan') as in_transit
             FROM orders
-        `);
+        `;
+        const params = [];
+        if (req.user.role === 'logist' && req.user.logistics_type) {
+            queryStr += ` WHERE delivery_method = $1`;
+            params.push(req.user.logistics_type);
+        }
+
+        const stats = await db.query(queryStr, params);
 
         res.status(200).json({
             status: 'success',

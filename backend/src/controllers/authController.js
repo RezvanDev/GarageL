@@ -6,18 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
 
 
-exports.updateRole = async (req, res, next) => {
-    try {
-        const { role } = req.body;
-        const updatedUser = await User.updateRole(req.params.id, role);
-        res.status(200).json({
-            status: 'success',
-            user: updatedUser
-        });
-    } catch (err) {
-        next(err);
-    }
-};
+
 
 exports.deleteUser = async (req, res, next) => {
     try {
@@ -46,14 +35,14 @@ exports.getUserOrders = async (req, res, next) => {
     }
 };
 
-const signToken = (id, role, allowedBrands) => {
-    return jwt.sign({ id, role, allowedBrands }, process.env.JWT_SECRET, {
+const signToken = (id, role, allowedBrands, logisticsType) => {
+    return jwt.sign({ id, role, allowedBrands, logisticsType }, process.env.JWT_SECRET, {
         expiresIn: '30d'
     });
 };
 
 const createSendToken = (user, statusCode, res) => {
-    const token = signToken(user.id, user.role, user.allowed_brands);
+    const token = signToken(user.id, user.role, user.allowed_brands, user.logistics_type);
 
     // Remove password from output
     user.password_hash = undefined;
@@ -69,7 +58,7 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.register = async (req, res, next) => {
     try {
-        const { phone, password, name, role, allowedBrands } = req.body;
+        const { phone, password, name, role, allowedBrands, logisticsType } = req.body;
 
         // Basic validation
         if (!phone || !password) {
@@ -81,7 +70,8 @@ exports.register = async (req, res, next) => {
             password,
             name,
             roleName: role || 'client', // Default to client
-            allowedBrands: role === 'supplier' ? allowedBrands : []
+            allowedBrands: role === 'supplier' ? allowedBrands : [],
+            logisticsType: role === 'logist' ? logisticsType : null
         });
 
         createSendToken(newUser, 201, res);
@@ -139,8 +129,8 @@ exports.getAllUsers = async (req, res, next) => {
 
 exports.updateRole = async (req, res, next) => {
     try {
-        const { role } = req.body;
-        const updatedUser = await User.updateRole(req.params.id, role);
+        const { role, allowedBrands, logisticsType } = req.body;
+        const updatedUser = await User.updateRole(req.params.id, role, allowedBrands, logisticsType);
         res.status(200).json({
             status: 'success',
             user: updatedUser

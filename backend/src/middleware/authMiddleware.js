@@ -17,11 +17,12 @@ exports.protect = async (req, res, next) => {
         // 2) Verification token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // 3) Grant access directly from JWT payload (role and allowedBrands)
+        // 3) Grant access directly from JWT payload (role, allowedBrands, logisticsType)
         req.user = {
             id: decoded.id,
             role: decoded.role,
-            allowed_brands: decoded.allowedBrands || []
+            allowed_brands: decoded.allowedBrands || [],
+            logistics_type: decoded.logisticsType || null
         };
         next();
     } catch (err) {
