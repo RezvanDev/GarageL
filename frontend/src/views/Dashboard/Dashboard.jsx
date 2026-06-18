@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Package, ClipboardList, ShoppingCart, PenTool, Bell } from 'lucide-react';
+import { Package, ClipboardList, ShoppingCart, PenTool, Bell, Crown } from 'lucide-react';
 import { GlassCard } from '../../components/common/UI';
 import { api } from '../../services/api';
 
@@ -13,9 +13,41 @@ export const Dashboard = ({ onNavigate, user }) => {
         animate={{ opacity: 1, y: 0 }}
         className="dashboard-container"
     >
-        <div style={{ textAlign: 'center', marginBottom: '15px' }}>
-            <h1 style={{ fontSize: '1.5rem' }}>Добро пожаловать в <span className="accent-text">Garage</span></h1>
-            <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem' }}>Управляйте заказами и ищите запчасти</p>
+        <div style={{ textAlign: 'center', marginBottom: '25px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <h1 style={{ fontSize: '1.5rem', marginBottom: '5px' }}>Добро пожаловать в <span className="accent-text">Garage</span></h1>
+            <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginBottom: '15px' }}>Управляйте заказами и ищите запчасти</p>
+            
+            <button
+                onClick={() => window.open('https://t.me/RezvanMax', '_blank')}
+                style={{
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)',
+                    color: '#000',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '8px 20px',
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    boxShadow: '0 4px 15px rgba(245, 158, 11, 0.3)',
+                    transition: 'all 0.2s ease',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px'
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(245, 158, 11, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(245, 158, 11, 0.3)';
+                }}
+            >
+                <Crown size={14} fill="#000" />
+                Купить мастер аккаунт
+            </button>
         </div>
 
         <div className="dashboard-grid">
