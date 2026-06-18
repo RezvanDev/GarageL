@@ -43,6 +43,14 @@ CREATE TABLE IF NOT EXISTS orders (
     quantity INTEGER DEFAULT 1,
     status VARCHAR(50) DEFAULT 'pending', -- pending, offered, paid, shipping, arrived
     price DECIMAL(10, 2),
+    delivery_method VARCHAR(20),
+    track_number VARCHAR(100),
+    weight DECIMAL(10, 2),
+    dimensions VARCHAR(100),
+    shipping_price DECIMAL(10, 2),
+    logist_shipping_price DECIMAL(10, 2),
+    warehouse_photo_url TEXT,
+    shipping_track_number VARCHAR(100),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

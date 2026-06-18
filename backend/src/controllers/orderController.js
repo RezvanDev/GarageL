@@ -335,6 +335,7 @@ exports.receiveAtWarehouse = async (req, res, next) => {
             weight,
             dimensions,
             shipping_price: shippingPrice,
+            logist_shipping_price: shippingPrice,
             warehouse_photo_url: photoUrl,
             status: 'logistics_review'
         });

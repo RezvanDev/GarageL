@@ -22,6 +22,7 @@ const runMigrations = async () => {
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS weight DECIMAL(10, 2);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS dimensions VARCHAR(100);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_price DECIMAL(10, 2);`);
+        await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS logist_shipping_price DECIMAL(10, 2);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS warehouse_photo_url TEXT;`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_track_number VARCHAR(100);`);
 

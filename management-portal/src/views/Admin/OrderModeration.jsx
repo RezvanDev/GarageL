@@ -229,7 +229,7 @@ export const OrderModeration = () => {
                                             <div>{order.weight} кг</div>
                                             <div style={{ opacity: 0.5 }}>{order.dimensions}</div>
                                         </td>
-                                        <td style={{ fontWeight: 700, color: '#f59e0b' }}>${order.shipping_price}</td>
+                                        <td style={{ fontWeight: 700, color: '#f59e0b' }}>${order.logist_shipping_price || order.shipping_price}</td>
                                         <td>
                                             <button
                                                 className="btn-primary"
@@ -294,7 +294,7 @@ export const OrderModeration = () => {
                                         <span style={{ position: 'absolute', right: '15px', fontWeight: 700, opacity: 0.5 }}>UZS</span>
                                     </div>
                                     <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '8px' }}>
-                                        Цена от логиста (в $): <strong>${approvingLogistics.shipping_price}</strong>
+                                        Цена от логиста (в $): <strong>${approvingLogistics.logist_shipping_price || approvingLogistics.shipping_price}</strong>
                                     </p>
                                 </div>
 

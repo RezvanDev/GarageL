@@ -244,10 +244,10 @@ export const LogistOrders = () => {
                                 <span style={{ opacity: 0.5 }}>Трек (поставщик):</span>
                                 <span style={{ fontWeight: 700, color: '#10b981' }}>{order.track_number || 'Ожидается'}</span>
                             </div>
-                            {order.shipping_price && (
+                            {(order.logist_shipping_price || order.shipping_price) && (
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                                     <span style={{ opacity: 0.5 }}>Стоимость лог.:</span>
-                                    <span style={{ fontWeight: 800, color: '#f59e0b' }}>${order.shipping_price}</span>
+                                    <span style={{ fontWeight: 800, color: '#f59e0b' }}>${order.logist_shipping_price || order.shipping_price}</span>
                                 </div>
                             )}
                         </div>
