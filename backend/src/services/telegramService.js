@@ -160,6 +160,88 @@ class TelegramService {
             console.error('Telegram Notify Supplier Update Error:', err);
         }
     }
+
+    async notifyLogistsNewPackage(orderId) {
+        try {
+            const result = await db.query(
+                `SELECT o.id, o.item_name, o.car_info, o.delivery_method, o.track_number, u.name as client_name 
+                 FROM orders o 
+                 JOIN users u ON o.client_id = u.id 
+                 WHERE o.id = $1`, 
+                [orderId]
+            );
+            
+            const order = result.rows[0];
+            if (!order) return;
+
+            const deliveryEmoji = order.delivery_method === 'air' ? '✈️ Авиа' : '🚛 Авто';
+
+            const logistResult = await db.query(
+                `SELECT u.telegram_chat_id 
+                 FROM users u
+                 JOIN roles r ON u.role_id = r.id 
+                 WHERE r.name = 'logist' 
+                 AND u.telegram_chat_id IS NOT NULL
+                 AND (u.logistics_type = $1 OR u.logistics_type IS NULL)`,
+                [order.delivery_method]
+            );
+
+            const logists = logistResult.rows;
+            for (const l of logists) {
+                const message = `📦 <b>Новое поступление на склад (${deliveryEmoji})!</b>\n\n` +
+                                `Заказ: <b>#${order.id}</b>\n` +
+                                `Товар: ${order.item_name}\n` +
+                                `Авто: ${order.car_info}\n` +
+                                `Клиент: ${order.client_name}\n` +
+                                `Трек-номер продавца: <code>${order.track_number || '—'}</code>\n\n` +
+                                `<a href="https://nexaicall.space/logist">Открыть панель логиста</a>`;
+                await this.sendMessage(l.telegram_chat_id, message);
+            }
+        } catch (err) {
+            console.error('Telegram Notify Logists New Package Error:', err);
+        }
+    }
+
+    async notifyLogistsReadyToShip(orderId) {
+        try {
+            const result = await db.query(
+                `SELECT o.id, o.item_name, o.car_info, o.delivery_method, u.name as client_name 
+                 FROM orders o 
+                 JOIN users u ON o.client_id = u.id 
+                 WHERE o.id = $1`, 
+                [orderId]
+            );
+            
+            const order = result.rows[0];
+            if (!order) return;
+
+            const deliveryEmoji = order.delivery_method === 'air' ? '✈️ Авиа' : '🚛 Авто';
+
+            const logistResult = await db.query(
+                `SELECT u.telegram_chat_id 
+                 FROM users u
+                 JOIN roles r ON u.role_id = r.id 
+                 WHERE r.name = 'logist' 
+                 AND u.telegram_chat_id IS NOT NULL
+                 AND (u.logistics_type = $1 OR u.logistics_type IS NULL)`,
+                [order.delivery_method]
+            );
+
+            const logists = logistResult.rows;
+            for (const l of logists) {
+                const message = `✈️ <b>Заказ готов к отправке в Узбекистан (${deliveryEmoji})!</b>\n\n` +
+                                `Заказ: <b>#${order.id}</b>\n` +
+                                `Товар: ${order.item_name}\n` +
+                                `Клиент: ${order.client_name}\n` +
+                                `Статус: <b>Доставка оплачена</b>\n\n` +
+                                `Пожалуйста, отправьте заказ и введите трек-номер отправления.\n\n` +
+                                `<a href="https://nexaicall.space/logist">Открыть панель логиста</a>`;
+                await this.sendMessage(l.telegram_chat_id, message);
+            }
+        } catch (err) {
+            console.error('Telegram Notify Logists Ready To Ship Error:', err);
+        }
+    }
 }
 
 module.exports = new TelegramService();

@@ -225,7 +225,7 @@ export const UserManagement = () => {
                                                 }}
                                             >
                                                 <option value="air" style={{ background: 'var(--bg-dark)', color: '#fff' }}>✈️ Авиа</option>
-                                                <option value="auto" style={{ background: 'var(--bg-dark)', color: '#fff' }}>🚛 Авто</option>
+                                                <option value="truck" style={{ background: 'var(--bg-dark)', color: '#fff' }}>🚛 Авто</option>
                                             </select>
                                         )}
                                     </div>
@@ -357,7 +357,7 @@ export const UserManagement = () => {
                                         }}
                                     >
                                         <option value="air">✈️ Авиа</option>
-                                        <option value="auto">🚛 Авто</option>
+                                        <option value="truck">🚛 Авто</option>
                                     </select>
                                 </div>
                             )}

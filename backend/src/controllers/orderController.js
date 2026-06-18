@@ -315,6 +315,7 @@ exports.updateTrackNumber = async (req, res, next) => {
             status: 'shipped_by_seller'
         });
         await telegramService.notifyOrderUpdate(orderId, 'shipped_by_seller');
+        await telegramService.notifyLogistsNewPackage(orderId);
 
         res.status(200).json({ status: 'success' });
     } catch (err) {
@@ -369,6 +370,7 @@ exports.confirmDeliveryPayment = async (req, res, next) => {
 
         await Order.update(orderId, { status: 'delivery_paid' });
         await telegramService.notifyOrderUpdate(orderId, 'delivery_paid');
+        await telegramService.notifyLogistsReadyToShip(orderId);
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);
