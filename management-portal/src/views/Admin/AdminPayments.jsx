@@ -62,7 +62,7 @@ export const AdminPayments = () => {
                         <div key={order.id} className="glass-card" style={{ padding: '20px', border: '1px solid var(--glass-border)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                 <span style={{ fontWeight: 700 }}>#{order.id} / {order.user_code}</span>
-                                <span style={{ color: '#10b981', fontWeight: 700 }}>${order.price}</span>
+                                <span style={{ color: '#10b981', fontWeight: 700 }}>{parseFloat(order.price).toLocaleString()} UZS</span>
                             </div>
                             <p style={{ fontSize: '0.9rem', marginBottom: '15px' }}>{order.item_name}</p>
                             <button className="btn-primary" style={{ width: '100%', background: '#10b981' }} onClick={() => confirmPayment(order.id, 'product')}>
@@ -83,7 +83,7 @@ export const AdminPayments = () => {
                         <div key={order.id} className="glass-card" style={{ padding: '20px', border: '1px solid var(--glass-border)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
                                 <span style={{ fontWeight: 700 }}>#{order.id} / {order.user_code}</span>
-                                <span style={{ color: 'var(--accent-blue)', fontWeight: 700 }}>${order.shipping_price}</span>
+                                <span style={{ color: 'var(--accent-blue)', fontWeight: 700 }}>{parseFloat(order.shipping_price).toLocaleString()} UZS</span>
                             </div>
                             <p style={{ fontSize: '0.9rem' }}>{order.item_name}</p>
                             <p style={{ fontSize: '0.8rem', opacity: 0.5, marginBottom: '15px' }}>Вес: {order.weight}кг / {order.dimensions}</p>
@@ -119,10 +119,10 @@ export const AdminPayments = () => {
                                         <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>{order.user_code}</div>
                                     </td>
                                     <td style={{ fontWeight: 700, color: order.status !== 'offer_selected' ? '#10b981' : 'inherit' }}>
-                                        ${order.price}
+                                        {parseFloat(order.price || 0).toLocaleString()} UZS
                                     </td>
                                     <td style={{ fontWeight: 700, color: order.status === 'delivery_paid' || order.status === 'delivered' || order.status === 'shipped_to_uzbekistan' ? 'var(--accent-blue)' : 'inherit' }}>
-                                        {order.shipping_price ? `$${order.shipping_price}` : '—'}
+                                        {order.shipping_price ? `${parseFloat(order.shipping_price).toLocaleString()} UZS` : '—'}
                                     </td>
                                     <td>
                                         <span style={{ fontSize: '0.7rem', fontWeight: 800, opacity: 0.6 }}>

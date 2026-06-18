@@ -390,7 +390,7 @@ export default function App() {
                 
                 <div style={{ padding: '15px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                   <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>К оплате за доставку:</p>
-                  <h2 style={{ color: '#10b981', margin: '5px 0' }}>${selectedOrder.shipping_price}</h2>
+                  <h2 style={{ color: '#10b981', margin: '5px 0' }}>{parseFloat(selectedOrder.shipping_price || 0).toLocaleString()} UZS</h2>
                   <p style={{ fontSize: '0.75rem', opacity: 0.5 }}>После оплаты товар будет отправлен в Узбекистан</p>
                 </div>
               </div>

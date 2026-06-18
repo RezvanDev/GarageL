@@ -281,19 +281,20 @@ export const OrderModeration = () => {
 
                             <form onSubmit={handleApproveLogistics} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 <div className="form-group">
-                                    <label>Итоговая стоимость доставки ($)</label>
-                                    <div style={{ position: 'relative' }}>
-                                        <DollarSign size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4 }} />
+                                    <label>Итоговая стоимость доставки для клиента (UZS)</label>
+                                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                                         <input
                                             type="number"
                                             value={finalShippingPrice}
                                             onChange={e => setFinalShippingPrice(e.target.value)}
-                                            style={{ paddingLeft: '40px', fontSize: '1.2rem', fontWeight: 700 }}
+                                            placeholder="Введите стоимость в UZS"
+                                            style={{ paddingRight: '60px', fontSize: '1.2rem', fontWeight: 700 }}
                                             required
                                         />
+                                        <span style={{ position: 'absolute', right: '15px', fontWeight: 700, opacity: 0.5 }}>UZS</span>
                                     </div>
-                                    <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '5px' }}>
-                                        Цена от логиста: ${approvingLogistics.shipping_price}
+                                    <p style={{ fontSize: '0.75rem', opacity: 0.6, marginTop: '8px' }}>
+                                        Цена от логиста (в $): <strong>${approvingLogistics.shipping_price}</strong>
                                     </p>
                                 </div>
 
