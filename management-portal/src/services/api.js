@@ -148,10 +148,10 @@ export const api = {
 
     admin: {
         getUsers: () => api.request('/auth/users'),
-        updateUserRole: (id, role, allowedBrands = null, logisticsType = null) =>
+        updateUserRole: (id, role, allowedBrands = null, allowedCategories = null, logisticsType = null) =>
             api.request(`/auth/users/${id}/role`, {
                 method: 'PATCH',
-                body: JSON.stringify({ role, allowedBrands, logisticsType })
+                body: JSON.stringify({ role, allowedBrands, allowedCategories, logisticsType })
             }),
         deleteUser: (id) =>
             api.request(`/auth/users/${id}`, {

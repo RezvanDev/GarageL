@@ -43,7 +43,7 @@ exports.createProduct = async (req, res, next) => {
             // Check allowed brands
             const allowedBrands = req.user.allowed_brands || [];
             if (allowedBrands.length > 0 && !allowedBrands.includes(data.brand)) {
-                return next(new require('../utils/appError')(`У вас нет доступа к добавлению товаров марки ${data.brand}`, 403));
+                return next(new AppError(`У вас нет доступа к добавлению товаров марки ${data.brand}`, 403));
             }
 
             data.supplier_id = req.user.id;

@@ -112,15 +112,32 @@ class TelegramService {
             if (!order.car_brand) return;
             
             const brandJson = JSON.stringify(order.car_brand);
-            const result = await db.query(
-                `SELECT u.telegram_chat_id 
-                 FROM users u
-                 JOIN roles r ON u.role_id = r.id 
-                 WHERE r.name = 'supplier' 
-                 AND u.telegram_chat_id IS NOT NULL
-                 AND u.allowed_brands @> $1::jsonb`,
-                [brandJson]
-            );
+            const category = order.category || 'parts';
+
+            let queryStr = `
+                SELECT u.telegram_chat_id 
+                FROM users u
+                JOIN roles r ON u.role_id = r.id 
+                WHERE r.name = 'supplier' 
+                AND u.telegram_chat_id IS NOT NULL
+                AND u.allowed_brands @> $1::jsonb
+            `;
+            const params = [brandJson];
+
+            if (category === 'parts') {
+                queryStr += `
+                    AND (
+                        u.allowed_categories IS NULL 
+                        OR u.allowed_categories = '[]'::jsonb 
+                        OR u.allowed_categories @> '"parts"'::jsonb
+                    )
+                `;
+            } else {
+                queryStr += ` AND u.allowed_categories @> $2::jsonb`;
+                params.push(JSON.stringify(category));
+            }
+
+            const result = await db.query(queryStr, params);
 
             const suppliers = result.rows;
             for (const s of suppliers) {

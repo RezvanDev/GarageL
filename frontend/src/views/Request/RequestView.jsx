@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Clipboard, Car, Hash, FileText, Send, CheckCircle2, ChevronLeft } from 'lucide-react';
 import { GlassCard } from '../../components/common/UI';
-import { brands, brandModels } from '../../data/constants';
+import { brands, brandModels, SUPPLIER_CATEGORIES } from '../../data/constants';
 
 export const RequestView = ({ onBack, onSubmit }) => {
     const [mode, setMode] = useState('single');
@@ -11,6 +11,7 @@ export const RequestView = ({ onBack, onSubmit }) => {
     const [photoFiles, setPhotoFiles] = useState([]);
     const [selectedBrand, setSelectedBrand] = useState('');
     const [selectedModel, setSelectedModel] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('parts');
     const fileInputRef = useRef(null);
 
     const handlePhotoClick = () => {
@@ -53,7 +54,7 @@ export const RequestView = ({ onBack, onSubmit }) => {
         const carInfo = `${data.brand} ${data.model} ${data.year ? `${data.year}г.` : ''} ${data.vin ? `(VIN: ${data.vin})` : ''} ${data.article ? `(Арт: ${data.article})` : ''}`;
         const description = mode === 'multi' ? data.description : '';
 
-        onSubmit(itemName, carInfo, description, photoFiles, data.brand, data.year, data.quantity);
+        onSubmit(itemName, carInfo, description, photoFiles, data.brand, data.year, data.quantity, selectedCategory);
         setIsSubmitted(true);
     };
 
@@ -282,6 +283,32 @@ export const RequestView = ({ onBack, onSubmit }) => {
                                             ))}
                                         </select>
                                     </div>
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Категория детали</label>
+                                <div className="input-wrapper">
+                                    <Clipboard className="input-icon" size={18} />
+                                    <select
+                                        name="category"
+                                        className="auth-input"
+                                        required
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                        style={{
+                                            appearance: 'none',
+                                            paddingRight: '35px',
+                                            background: 'rgba(255, 255, 255, 0.05)',
+                                            backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0\' fill=\'none\' stroke=\'rgba(255,255,255,0.3)\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'6 9 12 15 18 9\'%3E%3C/polyline%3E%3C/svg%3E")',
+                                            backgroundRepeat: 'no-repeat',
+                                            backgroundPosition: 'right 10px center'
+                                        }}
+                                    >
+                                        {Object.entries(SUPPLIER_CATEGORIES).map(([key, label]) => (
+                                            <option key={key} value={key}>{label}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 

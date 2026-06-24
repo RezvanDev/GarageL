@@ -53,6 +53,8 @@ exports.createOrder = async (req, res, next) => {
                 carBrand = carInfo.split(' ')[0];
             }
 
+            const { category } = req.body;
+
             newOrder = await Order.create({
                 client_id: req.user.id,
                 item_name: itemName,
@@ -61,7 +63,8 @@ exports.createOrder = async (req, res, next) => {
                 photo_url: photoUrl,
                 car_brand: carBrand,
                 year,
-                quantity: quantity ? parseInt(quantity, 10) : 1
+                quantity: quantity ? parseInt(quantity, 10) : 1,
+                category: category || 'parts'
             });
 
             // Notify all suppliers about new order
@@ -109,6 +112,15 @@ exports.getPendingOrders = async (req, res, next) => {
             if (allowedBrands.length > 0) {
                 orders = orders.filter(o => allowedBrands.includes(o.car_brand));
             }
+
+            const allowedCategories = req.user.allowed_categories || [];
+            orders = orders.filter(o => {
+                const orderCategory = o.category || 'parts';
+                if (orderCategory === 'parts') {
+                    return allowedCategories.length === 0 || allowedCategories.includes('parts');
+                }
+                return allowedCategories.includes(orderCategory);
+            });
         }
 
         res.status(200).json({
@@ -180,6 +192,16 @@ exports.respondToOrder = async (req, res, next) => {
 exports.getOrderOffers = async (req, res, next) => {
     try {
         const { id } = req.params;
+        const order = await Order.getById(id);
+        if (!order) {
+            return next(new AppError('Заказ не найден', 404));
+        }
+
+        // Only the client who created the order or an admin can see the offers
+        if (order.client_id !== req.user.id && req.user.role !== 'admin') {
+            return next(new AppError('У вас нет прав для просмотра предложений к этому заказу', 403));
+        }
+
         const offers = await Offer.getApprovedByOrder(id);
 
         res.status(200).json({

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Truck, Package, MapPin, CheckCircle2, Loader2, Image as ImageIcon } from 'lucide-react';
 import { ImageCarousel } from './components/common/ImageCarousel';
+import { SUPPLIER_CATEGORIES } from './data/constants';
 
 // Common components
 import { Modal } from './components/common/Modal';
@@ -75,7 +76,7 @@ export default function App() {
   const handleRequestSubmit = (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
-    addOrder(fd.get('item'), fd.get('car'), '', null);
+    addOrder(fd.get('item'), fd.get('car'), '', null, null, null, 1, fd.get('category') || 'parts');
     setIsRequestModalOpen(false);
   };
 
@@ -155,6 +156,14 @@ export default function App() {
           <div className="form-group">
             <label>Марка и модель</label>
             <input name="car" placeholder="Hyundai Sonata 2021" />
+          </div>
+          <div className="form-group">
+            <label>Категория</label>
+            <select name="category" defaultValue="parts" style={{ width: '100%', background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', padding: '10px' }}>
+              {Object.entries(SUPPLIER_CATEGORIES).map(([key, label]) => (
+                <option key={key} value={key} style={{ background: '#1c1c1e', color: '#fff' }}>{label}</option>
+              ))}
+            </select>
           </div>
           <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '10px' }}>Отправить</button>
         </form>

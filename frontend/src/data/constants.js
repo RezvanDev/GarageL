@@ -89,3 +89,12 @@ export const brandModels = {
 };
 
 export const mockCatalog = [];
+
+export const SUPPLIER_CATEGORIES = {
+    'parts': 'Запчасти (Без категории)',
+    'accessories': 'Аксессуары',
+    'soft_close': 'Доводчики и электронный багаж',
+    'led_lighting': 'Лед подсветка',
+    'others': 'Прочие'
+};
+

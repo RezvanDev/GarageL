@@ -35,14 +35,14 @@ exports.getUserOrders = async (req, res, next) => {
     }
 };
 
-const signToken = (id, role, allowedBrands, logisticsType) => {
-    return jwt.sign({ id, role, allowedBrands, logisticsType }, process.env.JWT_SECRET, {
+const signToken = (id, role, allowedBrands, allowedCategories, logisticsType) => {
+    return jwt.sign({ id, role, allowedBrands, allowedCategories, logisticsType }, process.env.JWT_SECRET, {
         expiresIn: '30d'
     });
 };
 
 const createSendToken = (user, statusCode, res) => {
-    const token = signToken(user.id, user.role, user.allowed_brands, user.logistics_type);
+    const token = signToken(user.id, user.role, user.allowed_brands, user.allowed_categories, user.logistics_type);
 
     // Remove password from output
     user.password_hash = undefined;
@@ -58,20 +58,40 @@ const createSendToken = (user, statusCode, res) => {
 
 exports.register = async (req, res, next) => {
     try {
-        const { phone, password, name, role, allowedBrands, logisticsType } = req.body;
+        const { phone, password, name, role, allowedBrands, allowedCategories, logisticsType } = req.body;
 
         // Basic validation
         if (!phone || !password) {
             return next(new AppError('Please provide phone and password', 400));
         }
 
+        // Check if the request is made by an admin to allow non-client roles
+        let isAdmin = false;
+        let token;
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                if (decoded.role === 'admin') {
+                    isAdmin = true;
+                }
+            } catch (err) {
+                // Ignore token validation error and treat as guest/client
+            }
+        }
+
+        const roleName = isAdmin ? (role || 'client') : 'client';
+
         const newUser = await User.create({
             phone,
             password,
             name,
-            roleName: role || 'client', // Default to client
-            allowedBrands: role === 'supplier' ? allowedBrands : [],
-            logisticsType: role === 'logist' ? logisticsType : null
+            roleName,
+            allowedBrands: roleName === 'supplier' ? allowedBrands : [],
+            allowedCategories: roleName === 'supplier' ? allowedCategories : [],
+            logisticsType: roleName === 'logist' ? logisticsType : null
         });
 
         createSendToken(newUser, 201, res);
@@ -129,8 +149,8 @@ exports.getAllUsers = async (req, res, next) => {
 
 exports.updateRole = async (req, res, next) => {
     try {
-        const { role, allowedBrands, logisticsType } = req.body;
-        const updatedUser = await User.updateRole(req.params.id, role, allowedBrands, logisticsType);
+        const { role, allowedBrands, allowedCategories, logisticsType } = req.body;
+        const updatedUser = await User.updateRole(req.params.id, role, allowedBrands, allowedCategories, logisticsType);
         res.status(200).json({
             status: 'success',
             user: updatedUser

@@ -3,6 +3,8 @@ import { api } from '../../services/api';
 import { User, Shield, UserCog, Loader2, Search, Plus } from 'lucide-react';
 import { CAR_BRANDS } from '../../constants/carBrands';
 
+import { SUPPLIER_CATEGORIES } from '../../constants/categories';
+
 export const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -38,6 +40,17 @@ export const UserManagement = () => {
         password: '',
         role: 'client',
         allowedBrands: [],
+        allowedCategories: [],
+        logisticsType: 'air'
+    });
+
+    // Edit User State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingUser, setEditingUser] = useState(null);
+    const [editUserForm, setEditUserForm] = useState({
+        role: 'client',
+        allowedBrands: [],
+        allowedCategories: [],
         logisticsType: 'air'
     });
 
@@ -90,7 +103,7 @@ export const UserManagement = () => {
             const res = await api.admin.createUser(newUserForm);
             setUsers([res.data.user, ...users]);
             setIsCreateModalOpen(false);
-            setNewUserForm({ phone: '', name: '', password: '', role: 'client', allowedBrands: [], logisticsType: 'air' });
+            setNewUserForm({ phone: '', name: '', password: '', role: 'client', allowedBrands: [], allowedCategories: [], logisticsType: 'air' });
             alert('Пользователь успешно создан!');
         } catch (err) {
             alert('Ошибка при создании: ' + err.message);
@@ -108,6 +121,75 @@ export const UserManagement = () => {
                 return { ...prev, allowedBrands: [...brands, brand] };
             }
         });
+    };
+
+    const toggleCategory = (category) => {
+        setNewUserForm(prev => {
+            const categories = prev.allowedCategories || [];
+            if (categories.includes(category)) {
+                return { ...prev, allowedCategories: categories.filter(c => c !== category) };
+            } else {
+                return { ...prev, allowedCategories: [...categories, category] };
+            }
+        });
+    };
+
+    const toggleEditBrand = (brand) => {
+        setEditUserForm(prev => {
+            const brands = prev.allowedBrands;
+            if (brands.includes(brand)) {
+                return { ...prev, allowedBrands: brands.filter(b => b !== brand) };
+            } else {
+                return { ...prev, allowedBrands: [...brands, brand] };
+            }
+        });
+    };
+
+    const toggleEditCategory = (category) => {
+        setEditUserForm(prev => {
+            const categories = prev.allowedCategories || [];
+            if (categories.includes(category)) {
+                return { ...prev, allowedCategories: categories.filter(c => c !== category) };
+            } else {
+                return { ...prev, allowedCategories: [...categories, category] };
+            }
+        });
+    };
+
+    const handleStartEdit = (user) => {
+        setEditingUser(user);
+        setEditUserForm({
+            role: user.role || 'client',
+            allowedBrands: user.allowed_brands || [],
+            allowedCategories: user.allowed_categories || [],
+            logisticsType: user.logistics_type || 'air'
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleUpdateUser = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await api.admin.updateUserRole(
+                editingUser.id,
+                editUserForm.role,
+                editUserForm.role === 'supplier' ? editUserForm.allowedBrands : [],
+                editUserForm.role === 'supplier' ? editUserForm.allowedCategories : [],
+                editUserForm.role === 'logist' ? editUserForm.logisticsType : null
+            );
+            setUsers(users.map(u => u.id === editingUser.id ? { 
+                ...u, 
+                role: editUserForm.role, 
+                allowed_brands: editUserForm.role === 'supplier' ? editUserForm.allowedBrands : [],
+                allowed_categories: editUserForm.role === 'supplier' ? editUserForm.allowedCategories : [],
+                logistics_type: editUserForm.role === 'logist' ? editUserForm.logisticsType : null
+            } : u));
+            setIsEditModalOpen(false);
+            setEditingUser(null);
+            alert('Пользователь успешно обновлен!');
+        } catch (err) {
+            alert('Ошибка при обновлении: ' + err.message);
+        }
     };
 
     const filteredUsers = users.filter(u =>
@@ -228,6 +310,12 @@ export const UserManagement = () => {
                                                 <option value="truck" style={{ background: 'var(--bg-dark)', color: '#fff' }}>🚛 Авто</option>
                                             </select>
                                         )}
+                                        {user.role === 'supplier' && (
+                                            <div style={{ width: '100%', fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '5px' }}>
+                                                <div><strong>Бренды:</strong> {user.allowed_brands?.length > 0 ? user.allowed_brands.join(', ') : 'Нет'}</div>
+                                                <div><strong>Категории:</strong> {user.allowed_categories?.length > 0 ? user.allowed_categories.map(c => SUPPLIER_CATEGORIES[c] || c).join(', ') : 'Все / Запчасти'}</div>
+                                            </div>
+                                        )}
                                     </div>
                                 </td>
                                 <td style={{ padding: '20px' }}>
@@ -240,12 +328,21 @@ export const UserManagement = () => {
                                     </button>
                                 </td>
                                 <td style={{ padding: '20px' }}>
-                                    <button
-                                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}
-                                        onClick={() => handleDeleteUser(user.id)}
-                                    >
-                                        Удалить
-                                    </button>
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                        <button
+                                            className="btn-secondary"
+                                            style={{ padding: '6px 12px', fontSize: '0.75rem' }}
+                                            onClick={() => handleStartEdit(user)}
+                                        >
+                                            Изменить
+                                        </button>
+                                        <button
+                                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.85rem' }}
+                                            onClick={() => handleDeleteUser(user.id)}
+                                        >
+                                            Удалить
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -329,18 +426,7 @@ export const UserManagement = () => {
                                         background: 'var(--glass-bg)',
                                         border: '1px solid var(--glass-border)',
                                         borderRadius: '12px',
-                                        color: '#fff',
-                                        outline: 'none'
-                                    }}
-                                >
-                                    <option value="client">Клиент</option>
-                                    <option value="supplier">Поставщик</option>
-                                    <option value="logist">Логист</option>
-                                    <option value="admin">Админ</option>
-                                </select>
-                            </div>
-
-                            {newUserForm.role === 'logist' && (
+                                            {newUserForm.role === 'logist' && (
                                 <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
                                     <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Специализация логиста:</label>
                                     <select
@@ -363,31 +449,211 @@ export const UserManagement = () => {
                             )}
 
                             {newUserForm.role === 'supplier' && (
-                                <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
-                                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Разрешенные марки авто:</label>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                        {Object.keys(CAR_BRANDS).map(brand => (
-                                            <div
-                                                key={brand}
-                                                onClick={() => toggleBrand(brand)}
-                                                style={{
-                                                    padding: '6px 12px',
-                                                    borderRadius: '20px',
-                                                    fontSize: '0.85rem',
-                                                    cursor: 'pointer',
-                                                    border: '1px solid',
-                                                    background: newUserForm.allowedBrands.includes(brand) ? 'var(--accent-blue)' : 'transparent',
-                                                    borderColor: newUserForm.allowedBrands.includes(brand) ? 'var(--accent-blue)' : 'var(--glass-border)',
-                                                    color: '#fff',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                            >
-                                                {brand}
-                                            </div>
-                                        ))}
+                                <>
+                                    <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+                                        <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Разрешенные марки авто:</label>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                            {Object.keys(CAR_BRANDS).map(brand => (
+                                                <div
+                                                    key={brand}
+                                                    onClick={() => toggleBrand(brand)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '20px',
+                                                        fontSize: '0.85rem',
+                                                        cursor: 'pointer',
+                                                        border: '1px solid',
+                                                        background: newUserForm.allowedBrands.includes(brand) ? 'var(--accent-blue)' : 'transparent',
+                                                        borderColor: newUserForm.allowedBrands.includes(brand) ? 'var(--accent-blue)' : 'var(--glass-border)',
+                                                        color: '#fff',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {brand}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '10px' }}>
+                                            Если ничего не выбрать, поставщик <b>не сможет</b> получать заявки и добавлять товары.
+                                        </p>
                                     </div>
-                                    <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '10px' }}>
-                                        Если ничего не выбрать, поставщик <b>не сможет</b> получать заявки и добавлять товары.
+
+                                    <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+                                        <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Разрешенные категории:</label>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                            {Object.entries(SUPPLIER_CATEGORIES).map(([key, label]) => (
+                                                <div
+                                                    key={key}
+                                                    onClick={() => toggleCategory(key)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '20px',
+                                                        fontSize: '0.85rem',
+                                                        cursor: 'pointer',
+                                                        border: '1px solid',
+                                                        background: newUserForm.allowedCategories.includes(key) ? 'var(--accent-blue)' : 'transparent',
+                                                        borderColor: newUserForm.allowedCategories.includes(key) ? 'var(--accent-blue)' : 'var(--glass-border)',
+                                                        color: '#fff',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {label}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '10px' }}>
+                                            Если ничего не выбрать, поставщик по умолчанию будет получать запросы <b>только без категорий (Запчасти)</b>.
+                                        </p>
+                                    </div>
+                                </>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
+                                <button type="button" className="btn-secondary" onClick={() => setIsCreateModalOpen(false)} style={{ flex: 1 }}>
+                                    Отмена
+                                </button>
+                                <button type="submit" className="btn-primary" style={{ flex: 1 }} disabled={isCreating}>
+                                    {isCreating ? <Loader2 size={18} className="spin" /> : 'Создать'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {isEditModalOpen && editingUser && (
+                <div className="modal-overlay">
+                    <div className="glass-card modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', width: '95%', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h3 style={{ marginBottom: '20px' }}>Редактирование поставщика / пользователя</h3>
+                        <form onSubmit={handleUpdateUser}>
+                            <div className="form-group">
+                                <label>Имя</label>
+                                <input
+                                    type="text"
+                                    disabled
+                                    value={editingUser.name || 'Без имени'}
+                                    style={{ opacity: 0.7 }}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Телефон</label>
+                                <input
+                                    type="text"
+                                    disabled
+                                    value={editingUser.phone}
+                                    style={{ opacity: 0.7 }}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Роль</label>
+                                <select
+                                    value={editUserForm.role}
+                                    onChange={e => setEditUserForm({ ...editUserForm, role: e.target.value, allowedBrands: [], allowedCategories: [], logisticsType: e.target.value === 'logist' ? 'air' : null })}
+                                    style={{
+                                        width: '100%',
+                                        padding: '12px 15px',
+                                        background: 'var(--glass-bg)',
+                                        border: '1px solid var(--glass-border)',
+                                        borderRadius: '12px',
+                                        color: '#fff',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="client">Клиент</option>
+                                    <option value="supplier">Поставщик</option>
+                                    <option value="logist">Логист</option>
+                                    <option value="admin">Админ</option>
+                                </select>
+                            </div>
+
+                            {editUserForm.role === 'logist' && (
+                                <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+                                    <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Специализация логиста:</label>
+                                    <select
+                                        value={editUserForm.logisticsType || 'air'}
+                                        onChange={e => setEditUserForm({ ...editUserForm, logisticsType: e.target.value })}
+                                        style={{
+                                            width: '100%',
+                                            padding: '12px 15px',
+                                            background: 'var(--glass-bg)',
+                                            border: '1px solid var(--glass-border)',
+                                            borderRadius: '12px',
+                                            color: '#fff',
+                                            outline: 'none'
+                                        }}
+                                    >
+                                        <option value="air">✈️ Авиа</option>
+                                        <option value="truck">🚛 Авто</option>
+                                    </select>
+                                </div>
+                            )}
+
+                            {editUserForm.role === 'supplier' && (
+                                <>
+                                    <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+                                        <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Разрешенные марки авто:</label>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                            {Object.keys(CAR_BRANDS).map(brand => (
+                                                <div
+                                                    key={brand}
+                                                    onClick={() => toggleEditBrand(brand)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '20px',
+                                                        fontSize: '0.85rem',
+                                                        cursor: 'pointer',
+                                                        border: '1px solid',
+                                                        background: editUserForm.allowedBrands.includes(brand) ? 'var(--accent-blue)' : 'transparent',
+                                                        borderColor: editUserForm.allowedBrands.includes(brand) ? 'var(--accent-blue)' : 'var(--glass-border)',
+                                                        color: '#fff',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {brand}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
+                                        <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Разрешенные категории:</label>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                            {Object.entries(SUPPLIER_CATEGORIES).map(([key, label]) => (
+                                                <div
+                                                    key={key}
+                                                    onClick={() => toggleEditCategory(key)}
+                                                    style={{
+                                                        padding: '6px 12px',
+                                                        borderRadius: '20px',
+                                                        fontSize: '0.85rem',
+                                                        cursor: 'pointer',
+                                                        border: '1px solid',
+                                                        background: editUserForm.allowedCategories.includes(key) ? 'var(--accent-blue)' : 'transparent',
+                                                        borderColor: editUserForm.allowedCategories.includes(key) ? 'var(--accent-blue)' : 'var(--glass-border)',
+                                                        color: '#fff',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                >
+                                                    {label}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+
+                            <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
+                                <button type="button" className="btn-secondary" onClick={() => { setIsEditModalOpen(false); setEditingUser(null); }} style={{ flex: 1 }}>
+                                    Отмена
+                                </button>
+                                <button type="submit" className="btn-primary" style={{ flex: 1 }}>
+                                    Сохранить
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}�ть товары.
                                     </p>
                                 </div>
                             )}

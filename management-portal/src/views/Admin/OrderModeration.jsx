@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api, BASE_IMAGE_URL } from '../../services/api';
 import { CheckCircle2, XCircle, Loader2, Edit3, DollarSign, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SUPPLIER_CATEGORIES } from '../../constants/categories';
 
 export const OrderModeration = () => {
     const [activeTab, setActiveTab] = useState('offers'); // offers, logistics
@@ -154,6 +155,9 @@ export const OrderModeration = () => {
                                         <td>
                                             <div style={{ fontWeight: 600 }}>{offer.item_name || 'Без названия'}</div>
                                             <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>{offer.car_info}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', fontWeight: 600 }}>
+                                                Категория: {SUPPLIER_CATEGORIES[offer.category] || offer.category || 'Запчасти'}
+                                            </div>
                                             {offer.year && <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>Год: {offer.year}</div>}
                                             {offer.item_code && <div style={{ fontSize: '0.7rem', color: 'var(--accent-blue)' }}>Код: {offer.item_code}</div>}
                                         </td>
@@ -221,6 +225,9 @@ export const OrderModeration = () => {
                                         <td>
                                             <div style={{ fontWeight: 600 }}>{order.item_name}</div>
                                             <div style={{ fontSize: '0.75rem', opacity: 0.5 }}>{order.client_name} ({order.user_code})</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', fontWeight: 600 }}>
+                                                Категория: {SUPPLIER_CATEGORIES[order.category] || order.category || 'Запчасти'}
+                                            </div>
                                         </td>
                                         <td style={{ fontWeight: 600 }}>
                                             {order.delivery_method === 'air' ? '✈️ Авиа' : '🚛 Авто'}

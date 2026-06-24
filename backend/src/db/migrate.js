@@ -8,6 +8,7 @@ const runMigrations = async () => {
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS user_code VARCHAR(20) UNIQUE;`);
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS allowed_brands JSONB DEFAULT '[]'::jsonb;`);
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logistics_type VARCHAR(20);`);
+        await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS allowed_categories JSONB DEFAULT '[]'::jsonb;`);
 
         // 2. Products table migrations
         await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS supplier_id INTEGER REFERENCES users(id);`);
@@ -25,6 +26,7 @@ const runMigrations = async () => {
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS logist_shipping_price DECIMAL(10, 2);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS warehouse_photo_url TEXT;`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_track_number VARCHAR(100);`);
+        await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'parts';`);
 
         // 4. Generate user_codes for existing users if any are null
         const users = await db.query(`SELECT id FROM users WHERE user_code IS NULL ORDER BY id`);

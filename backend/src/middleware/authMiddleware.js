@@ -22,6 +22,7 @@ exports.protect = async (req, res, next) => {
             id: decoded.id,
             role: decoded.role,
             allowed_brands: decoded.allowedBrands || [],
+            allowed_categories: decoded.allowedCategories || [],
             logistics_type: decoded.logisticsType || null
         };
         next();

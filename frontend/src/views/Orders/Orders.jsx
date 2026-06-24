@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { GlassCard, Badge } from '../../components/common/UI';
+import { SUPPLIER_CATEGORIES } from '../../data/constants';
 
 const formatStatus = (s) => {
     const map = {
@@ -79,6 +80,9 @@ export const Orders = ({ orders, onSelectOrder, user }) => (
 
                             <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>
                                 {order.car_info}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--accent-blue)', marginTop: '4px', fontWeight: 600 }}>
+                                {SUPPLIER_CATEGORIES[order.category] || order.category || 'Запчасти'}
                             </div>
                         </GlassCard>
                     </motion.div>

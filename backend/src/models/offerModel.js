@@ -27,7 +27,7 @@ class Offer {
 
     static async getAllPending() {
         const result = await db.query(
-            `SELECT o.*, ord.item_name, ord.car_info, u.name as supplier_name 
+            `SELECT o.*, ord.item_name, ord.car_info, ord.category, u.name as supplier_name 
              FROM offers o 
              JOIN orders ord ON o.order_id = ord.id 
              JOIN users u ON o.supplier_id = u.id 

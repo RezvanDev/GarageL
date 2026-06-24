@@ -4,6 +4,7 @@ import { api, BASE_IMAGE_URL } from '../../services/api';
 import { Package, Send, Loader2, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { ImageCarousel } from '../../components/common/ImageCarousel';
+import { SUPPLIER_CATEGORIES_ZH } from '../../constants/categories';
 
 export const SupplierOrders = () => {
     const { user } = useAuth();
@@ -223,6 +224,7 @@ export const SupplierOrders = () => {
                                     )}
                                     <div style={{ fontSize: '0.85rem', color: 'var(--text-dim)', flex: 1 }}>
                                         <p style={{ marginBottom: '5px' }}><strong>Авто / 车型:</strong> {order.car_info}</p>
+                                        <p style={{ marginBottom: '5px' }}><strong>Категория / 类别:</strong> <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>{SUPPLIER_CATEGORIES_ZH[order.category] || order.category || 'Запчасти / 配件'}</span></p>
                                         <p style={{ fontSize: '0.8rem', fontStyle: 'italic', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                                             {order.description || 'Нет описания / 无描述'}
                                         </p>

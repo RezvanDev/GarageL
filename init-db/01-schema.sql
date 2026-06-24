@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_code VARCHAR(20) UNIQUE,
     role_id INTEGER REFERENCES roles(id),
     allowed_brands JSONB DEFAULT '[]'::jsonb,
+    allowed_categories JSONB DEFAULT '[]'::jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -58,6 +59,7 @@ CREATE TABLE IF NOT EXISTS orders (
     shipping_price DECIMAL(10, 2),
     warehouse_photo_url TEXT,
     shipping_track_number VARCHAR(100),
+    category VARCHAR(100) DEFAULT 'parts',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

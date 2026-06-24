@@ -139,7 +139,7 @@ export const useGarageState = () => {
         }
     }, [cart, navigate, fetchOrders]);
 
-    const addOrder = useCallback(async (itemName, carInfo, description, photoFiles, carBrand, year, quantity) => {
+    const addOrder = useCallback(async (itemName, carInfo, description, photoFiles, carBrand, year, quantity, category = 'parts') => {
         setIsLoading(true);
         try {
             let photoUrl = null;
@@ -185,7 +185,8 @@ export const useGarageState = () => {
                 photoUrl,
                 carBrand,
                 year,
-                quantity
+                quantity,
+                category
             });
             await fetchOrders();
             navigate('orders');
