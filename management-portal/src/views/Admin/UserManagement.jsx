@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { User, Shield, UserCog, Loader2, Search, Plus } from 'lucide-react';
 import { CAR_BRANDS } from '../../constants/carBrands';
-
 import { SUPPLIER_CATEGORIES } from '../../constants/categories';
 
 export const UserManagement = () => {
@@ -57,7 +56,7 @@ export const UserManagement = () => {
     const handleRoleChange = async (userId, newRole) => {
         try {
             const defaultLogisticsType = newRole === 'logist' ? 'air' : null;
-            await api.admin.updateUserRole(userId, newRole, null, defaultLogisticsType);
+            await api.admin.updateUserRole(userId, newRole, null, null, defaultLogisticsType);
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole, logistics_type: defaultLogisticsType } : u));
         } catch (err) {
             alert('Ошибка при смене роли: ' + err.message);
@@ -66,7 +65,7 @@ export const UserManagement = () => {
 
     const handleLogisticsTypeChange = async (userId, role, newLogisticsType) => {
         try {
-            await api.admin.updateUserRole(userId, role, null, newLogisticsType);
+            await api.admin.updateUserRole(userId, role, null, null, newLogisticsType);
             setUsers(users.map(u => u.id === userId ? { ...u, logistics_type: newLogisticsType } : u));
         } catch (err) {
             alert('Ошибка при смене специализации: ' + err.message);
@@ -170,7 +169,7 @@ export const UserManagement = () => {
     const handleUpdateUser = async (e) => {
         e.preventDefault();
         try {
-            const res = await api.admin.updateUserRole(
+            await api.admin.updateUserRole(
                 editingUser.id,
                 editUserForm.role,
                 editUserForm.role === 'supplier' ? editUserForm.allowedBrands : [],
@@ -419,14 +418,25 @@ export const UserManagement = () => {
                                 <label>Роль</label>
                                 <select
                                     value={newUserForm.role}
-                                    onChange={e => setNewUserForm({ ...newUserForm, role: e.target.value, allowedBrands: [], logisticsType: e.target.value === 'logist' ? 'air' : null })}
+                                    onChange={e => setNewUserForm({ ...newUserForm, role: e.target.value, allowedBrands: [], allowedCategories: [], logisticsType: e.target.value === 'logist' ? 'air' : null })}
                                     style={{
                                         width: '100%',
                                         padding: '12px 15px',
                                         background: 'var(--glass-bg)',
                                         border: '1px solid var(--glass-border)',
                                         borderRadius: '12px',
-                                            {newUserForm.role === 'logist' && (
+                                        color: '#fff',
+                                        outline: 'none'
+                                    }}
+                                >
+                                    <option value="client">Клиент</option>
+                                    <option value="supplier">Поставщик</option>
+                                    <option value="logist">Логист</option>
+                                    <option value="admin">Админ</option>
+                                </select>
+                            </div>
+
+                            {newUserForm.role === 'logist' && (
                                 <div style={{ marginTop: '20px', padding: '15px', background: 'rgba(14, 165, 233, 0.05)', borderRadius: '12px', border: '1px solid rgba(14, 165, 233, 0.2)' }}>
                                     <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>Специализация логиста:</label>
                                     <select
@@ -648,22 +658,6 @@ export const UserManagement = () => {
                                 </button>
                                 <button type="submit" className="btn-primary" style={{ flex: 1 }}>
                                     Сохранить
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}�ть товары.
-                                    </p>
-                                </div>
-                            )}
-
-                            <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
-                                <button type="button" className="btn-secondary" onClick={() => setIsCreateModalOpen(false)} style={{ flex: 1 }}>
-                                    Отмена
-                                </button>
-                                <button type="submit" className="btn-primary" style={{ flex: 1 }} disabled={isCreating}>
-                                    {isCreating ? <Loader2 size={18} className="spin" /> : 'Создать'}
                                 </button>
                             </div>
                         </form>
