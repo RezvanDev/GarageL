@@ -65,6 +65,7 @@ export const api = {
             }),
         getMy: () => api.request('/orders/my'),
         getOffers: (orderId) => api.request(`/orders/${orderId}/offers`),
+        getPaymentLink: (orderId) => api.request(`/orders/${orderId}/payment-link`),
         selectOffer: (payload) => api.request('/orders/select-offer', {
             method: 'POST',
             body: JSON.stringify(payload)

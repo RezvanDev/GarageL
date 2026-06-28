@@ -9,6 +9,8 @@ const runMigrations = async () => {
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS allowed_brands JSONB DEFAULT '[]'::jsonb;`);
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS logistics_type VARCHAR(20);`);
         await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS allowed_categories JSONB DEFAULT '[]'::jsonb;`);
+        await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_chat_id VARCHAR(100);`);
+        await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS telegram_sync_token VARCHAR(100);`);
 
         // 2. Products table migrations
         await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS supplier_id INTEGER REFERENCES users(id);`);
@@ -27,6 +29,21 @@ const runMigrations = async () => {
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS warehouse_photo_url TEXT;`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS shipping_track_number VARCHAR(100);`);
         await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS category VARCHAR(100) DEFAULT 'parts';`);
+
+        // 3.5. Payme transactions table migrations
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS payme_transactions (
+                id VARCHAR(255) PRIMARY KEY,
+                time BIGINT NOT NULL,
+                state INTEGER NOT NULL,
+                amount BIGINT NOT NULL,
+                order_id INTEGER REFERENCES orders(id),
+                create_time BIGINT NOT NULL,
+                perform_time BIGINT,
+                cancel_time BIGINT,
+                reason INTEGER
+            );
+        `);
 
         // 4. Generate user_codes for existing users if any are null
         const users = await db.query(`SELECT id FROM users WHERE user_code IS NULL ORDER BY id`);

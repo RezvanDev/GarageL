@@ -545,3 +545,54 @@ exports.getAdminAnalytics = async (req, res, next) => {
         next(err);
     }
 };
+
+exports.getPaymentLink = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const order = await Order.getById(id);
+
+        if (!order) {
+            return next(new AppError('Заказ не найден', 404));
+        }
+
+        // Verify ownership
+        if (order.client_id !== req.user.id && req.user.role !== 'admin') {
+            return next(new AppError('У вас нет прав для оплаты этого заказа', 403));
+        }
+
+        // Verify status
+        if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+            return next(new AppError('Этот заказ в данный момент не ожидает оплаты', 400));
+        }
+
+        let amount;
+        if (order.status === 'offer_selected') {
+            amount = Math.round(parseFloat(order.price) * 100);
+        } else {
+            amount = Math.round(parseFloat(order.shipping_price) * 100);
+        }
+
+        const merchantId = process.env.PAYME_MERCHANT_ID || '587f72c72cac0d162c722ae2';
+        const returnUrl = process.env.PAYME_RETURN_URL || req.get('referer') || 'https://nexaicall.space';
+        const redirectTimeout = 5000;
+        const currencyCode = 860; // UZS
+
+        const paramsString = `m=${merchantId};ac.order_id=${order.id};a=${amount};l=ru;c=${returnUrl};ct=${redirectTimeout};cr=${currencyCode}`;
+        const base64Params = Buffer.from(paramsString).toString('base64');
+
+        const isSandbox = process.env.PAYME_SANDBOX !== 'false';
+        const checkoutUrl = isSandbox ? 'https://test.paycom.uz' : 'https://checkout.paycom.uz';
+
+        const paymentLink = `${checkoutUrl}/${base64Params}`;
+
+        res.status(200).json({
+            status: 'success',
+            data: {
+                paymentLink
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+

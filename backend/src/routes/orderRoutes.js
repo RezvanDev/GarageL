@@ -16,6 +16,7 @@ router.post('/respond', orderController.respondToOrder);
 
 // Client specific
 router.get('/:id/offers', orderController.getOrderOffers);
+router.get('/:id/payment-link', orderController.getPaymentLink);
 
 // Admin only moderation
 router.get('/pending-offers', restrictTo('admin'), orderController.getPendingOffers);

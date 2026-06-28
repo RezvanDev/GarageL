@@ -12,6 +12,7 @@ const path = require('path');
 const telegramRoutes = require('./routes/telegramRoutes');
 const telegramService = require('./services/telegramService');
 const runMigrations = require('./db/migrate');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -61,6 +62,7 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/upload', uploadRoutes); // Added
 app.use('/api/v1/telegram', telegramRoutes);
+app.use('/api/v1/payment', paymentRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

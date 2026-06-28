@@ -53,7 +53,8 @@ export default function App() {
     updateOrderStatus,
     fetchProducts,
     fetchOrderOffers,
-    selectOffer
+    selectOffer,
+    getPaymentLink
   } = useGarageState();
 
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -61,6 +62,13 @@ export default function App() {
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [offerQuantities, setOfferQuantities] = useState({});
   const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(null); // 'air' or 'truck'
+  const [paymentMethod, setPaymentMethod] = useState('payme'); // 'payme' or 'cash'
+
+  React.useEffect(() => {
+    if (selectedOrder) {
+      setPaymentMethod('payme');
+    }
+  }, [selectedOrder]);
 
   // Fetch offers when an order with 'offered' status is selected
   React.useEffect(() => {
@@ -353,13 +361,84 @@ export default function App() {
             )}
 
             {selectedOrder.status === 'offer_selected' && (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <div style={{ fontSize: '3rem', marginBottom: '15px' }}>💰</div>
-                <h3>Ожидание оплаты товара</h3>
-                <p style={{ opacity: 0.6, fontSize: '0.9rem', marginTop: '10px' }}>
-                  Пожалуйста, произведите оплату {parseFloat(selectedOrder.price).toLocaleString()} UZS и отправьте подтверждение админу. 
-                  Ваш товар будет выкуплен сразу после подтверждения.
-                </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ padding: '15px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                  <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Сумма к оплате за товар:</p>
+                  <h2 style={{ color: '#10b981', margin: '5px 0' }}>{parseFloat(selectedOrder.price).toLocaleString()} UZS</h2>
+                </div>
+
+                {/* Выбор способа оплаты */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '10px', opacity: 0.8 }}>Способ оплаты:</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={() => setPaymentMethod('payme')}
+                      style={{ 
+                        flex: 1, 
+                        padding: '12px', 
+                        borderRadius: '10px', 
+                        border: paymentMethod === 'payme' ? '2px solid var(--accent-blue)' : '1px solid rgba(255,255,255,0.1)', 
+                        background: paymentMethod === 'payme' ? 'rgba(14,165,233,0.1)' : 'transparent',
+                        color: paymentMethod === 'payme' ? 'var(--accent-blue)' : '#fff',
+                        fontWeight: 700,
+                        transition: 'all 0.2s',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      💳 Картой (Payme)
+                    </button>
+                    <button 
+                      onClick={() => setPaymentMethod('cash')}
+                      style={{ 
+                        flex: 1, 
+                        padding: '12px', 
+                        borderRadius: '10px', 
+                        border: paymentMethod === 'cash' ? '2px solid var(--accent-blue)' : '1px solid rgba(255,255,255,0.1)', 
+                        background: paymentMethod === 'cash' ? 'rgba(14,165,233,0.1)' : 'transparent',
+                        color: paymentMethod === 'cash' ? 'var(--accent-blue)' : '#fff',
+                        fontWeight: 700,
+                        transition: 'all 0.2s',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      💵 Наличными / Переводом
+                    </button>
+                  </div>
+                </div>
+
+                {paymentMethod === 'payme' ? (
+                  <button
+                    className="btn-primary"
+                    style={{ width: '100%', padding: '15px', fontWeight: 800, fontSize: '1rem', background: '#0ea5e9' }}
+                    onClick={async () => {
+                      const link = await getPaymentLink(selectedOrder.id);
+                      if (link) {
+                        window.open(link, '_blank');
+                        setSelectedOrder(null);
+                      }
+                    }}
+                  >
+                    Оплатить через Payme
+                  </button>
+                ) : (
+                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                    <p style={{ lineHeight: '1.4', opacity: 0.8 }}>
+                      Для оплаты наличными или прямым переводом, свяжитесь, пожалуйста, с администратором. 
+                      После передачи оплаты администратор подтвердит её в панели управления, и заказ пойдет в работу.
+                    </p>
+                    <button 
+                      className="btn-secondary"
+                      style={{ width: '100%', marginTop: '15px', padding: '12px', fontWeight: 600 }}
+                      onClick={() => {
+                        const supportUser = 'RezvanMax';
+                        const text = `Здравствуйте! Я хочу оплатить наличными заказ #${selectedOrder.id} на сумму ${parseFloat(selectedOrder.price).toLocaleString()} UZS.`;
+                        window.open(`https://t.me/${supportUser}?text=${encodeURIComponent(text)}`, '_blank');
+                      }}
+                    >
+                      Связаться с администратором
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -402,6 +481,79 @@ export default function App() {
                   <h2 style={{ color: '#10b981', margin: '5px 0' }}>{parseFloat(selectedOrder.shipping_price || 0).toLocaleString()} UZS</h2>
                   <p style={{ fontSize: '0.75rem', opacity: 0.5 }}>После оплаты товар будет отправлен в Узбекистан</p>
                 </div>
+
+                {/* Выбор способа оплаты доставки */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '10px', opacity: 0.8 }}>Способ оплаты:</label>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      onClick={() => setPaymentMethod('payme')}
+                      style={{ 
+                        flex: 1, 
+                        padding: '12px', 
+                        borderRadius: '10px', 
+                        border: paymentMethod === 'payme' ? '2px solid var(--accent-blue)' : '1px solid rgba(255,255,255,0.1)', 
+                        background: paymentMethod === 'payme' ? 'rgba(14,165,233,0.1)' : 'transparent',
+                        color: paymentMethod === 'payme' ? 'var(--accent-blue)' : '#fff',
+                        fontWeight: 700,
+                        transition: 'all 0.2s',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      💳 Картой (Payme)
+                    </button>
+                    <button 
+                      onClick={() => setPaymentMethod('cash')}
+                      style={{ 
+                        flex: 1, 
+                        padding: '12px', 
+                        borderRadius: '10px', 
+                        border: paymentMethod === 'cash' ? '2px solid var(--accent-blue)' : '1px solid rgba(255,255,255,0.1)', 
+                        background: paymentMethod === 'cash' ? 'rgba(14,165,233,0.1)' : 'transparent',
+                        color: paymentMethod === 'cash' ? 'var(--accent-blue)' : '#fff',
+                        fontWeight: 700,
+                        transition: 'all 0.2s',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      💵 Наличными / Переводом
+                    </button>
+                  </div>
+                </div>
+
+                {paymentMethod === 'payme' ? (
+                  <button
+                    className="btn-primary"
+                    style={{ width: '100%', padding: '15px', fontWeight: 800, fontSize: '1rem', background: '#0ea5e9' }}
+                    onClick={async () => {
+                      const link = await getPaymentLink(selectedOrder.id);
+                      if (link) {
+                        window.open(link, '_blank');
+                        setSelectedOrder(null);
+                      }
+                    }}
+                  >
+                    Оплатить доставку через Payme
+                  </button>
+                ) : (
+                  <div style={{ background: 'rgba(255,255,255,0.03)', padding: '15px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '0.9rem' }}>
+                    <p style={{ lineHeight: '1.4', opacity: 0.8 }}>
+                      Для оплаты доставки наличными или переводом, свяжитесь с администратором. 
+                      После подтверждения оплаты доставки администратором товар будет отправлен в Узбекистан.
+                    </p>
+                    <button 
+                      className="btn-secondary"
+                      style={{ width: '100%', marginTop: '15px', padding: '12px', fontWeight: 600 }}
+                      onClick={() => {
+                        const supportUser = 'RezvanMax';
+                        const text = `Здравствуйте! Я хочу оплатить наличными доставку заказа #${selectedOrder.id} на сумму ${parseFloat(selectedOrder.shipping_price || 0).toLocaleString()} UZS.`;
+                        window.open(`https://t.me/${supportUser}?text=${encodeURIComponent(text)}`, '_blank');
+                      }}
+                    >
+                      Связаться с администратором
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

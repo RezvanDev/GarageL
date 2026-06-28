@@ -228,6 +228,20 @@ export const useGarageState = () => {
         }
     }, [fetchOrders]);
 
+    const getPaymentLink = useCallback(async (orderId) => {
+        setIsLoading(true);
+        try {
+            const res = await api.orders.getPaymentLink(orderId);
+            return res.data.paymentLink;
+        } catch (err) {
+            console.error('Failed to fetch payment link:', err);
+            alert('Ошибка при получении ссылки на оплату: ' + err.message);
+            return null;
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
     const fetchMe = useCallback(async () => {
         try {
             const res = await api.auth.getMe();
@@ -287,6 +301,7 @@ export const useGarageState = () => {
         fetchProducts,
         updateOrderStatus,
         fetchOrderOffers,
-        selectOffer
+        selectOffer,
+        getPaymentLink
     };
 };
