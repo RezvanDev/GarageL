@@ -141,7 +141,7 @@ async function handleCheckPerform(params, id, res) {
 
     // Verify order status eligibility (only allow if offer_selected or waiting_delivery_payment)
     if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
-        return respondError(res, id, -31050, 'Заказ недоступен для оплаты', 'order_id');
+        return respondError(res, id, -31052, 'Заказ недоступен для оплаты', 'order_id');
     }
 
     // Verify amount matching
@@ -226,7 +226,7 @@ async function handleCreateTransaction(params, id, res) {
     }
 
     if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
-        return respondError(res, id, -31050, 'Заказ недоступен для оплаты', 'order_id');
+        return respondError(res, id, -31052, 'Заказ недоступен для оплаты', 'order_id');
     }
 
     // Verify amount matching
