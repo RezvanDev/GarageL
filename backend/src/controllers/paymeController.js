@@ -70,6 +70,50 @@ function respondError(res, id, code, message, data = null) {
     });
 }
 
+// Helper to build detail object for Payme fiscalization
+function buildReceiptDetail(order, amountInTiyins) {
+    const isDelivery = order.status === 'waiting_delivery_payment';
+    
+    // Default values for fiscalization
+    const vatPercent = Number(process.env.PAYME_VAT_PERCENT) || 0; 
+    
+    // Fallback ИКПУ and package codes
+    const defaultDeliveryIkpu = process.env.PAYME_DELIVERY_IKPU || '10901001001000000';
+    const defaultProductIkpu = process.env.PAYME_PRODUCT_IKPU || '08703002001000001';
+    
+    const defaultDeliveryPackageCode = process.env.PAYME_DELIVERY_PACKAGE_CODE || '123456';
+    const defaultProductPackageCode = process.env.PAYME_PRODUCT_PACKAGE_CODE || '123456';
+
+    const items = [];
+
+    if (isDelivery) {
+        items.push({
+            title: `Доставка заказа #${order.id}`,
+            price: Number(amountInTiyins),
+            count: 1,
+            code: defaultDeliveryIkpu,
+            package_code: defaultDeliveryPackageCode,
+            vat_percent: vatPercent
+        });
+    } else {
+        const count = Number(order.quantity) || 1;
+        const unitPrice = Math.round(Number(amountInTiyins) / count);
+        items.push({
+            title: order.item_name || 'Автозапчасти',
+            price: unitPrice,
+            count: count,
+            code: defaultProductIkpu,
+            package_code: defaultProductPackageCode,
+            vat_percent: vatPercent
+        });
+    }
+
+    return {
+        receipt_type: 0,
+        items: items
+    };
+}
+
 // Handler: CheckPerformTransaction
 async function handleCheckPerform(params, id, res) {
     const { amount, account } = params;
@@ -90,7 +134,11 @@ async function handleCheckPerform(params, id, res) {
         return respondError(res, id, check.errorCode, check.errorMessage);
     }
 
-    return respondSuccess(res, id, { allow: true });
+    const detail = buildReceiptDetail(order, amount);
+    return respondSuccess(res, id, { 
+        allow: true, 
+        detail: detail
+    });
 }
 
 // Helper to check status eligibility and amount
@@ -162,10 +210,12 @@ async function handleCreateTransaction(params, id, res) {
                 return respondError(res, id, -31008, 'Transaction timed out');
             }
 
+            const detail = buildReceiptDetail(order, amount);
             return respondSuccess(res, id, {
                 create_time: Number(existingTx.time),
                 transaction: existingTx.id,
-                state: existingTx.state
+                state: existingTx.state,
+                detail: detail
             });
         } else {
             return respondError(res, id, -31008, 'Transaction is not active');
@@ -195,10 +245,12 @@ async function handleCreateTransaction(params, id, res) {
         [paymeTxId, time, STATE_CREATED, amount, orderId, now]
     );
 
+    const detail = buildReceiptDetail(order, amount);
     return respondSuccess(res, id, {
         create_time: Number(time),
         transaction: paymeTxId,
-        state: STATE_CREATED
+        state: STATE_CREATED,
+        detail: detail
     });
 }
 
