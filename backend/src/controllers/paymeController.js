@@ -427,7 +427,7 @@ async function handleCheckTransaction(params, id, res) {
     }
 
     return respondSuccess(res, id, {
-        create_time: Number(tx.time),
+        create_time: Number(tx.create_time),
         perform_time: tx.perform_time ? Number(tx.perform_time) : 0,
         cancel_time: tx.cancel_time ? Number(tx.cancel_time) : 0,
         transaction: tx.id,
