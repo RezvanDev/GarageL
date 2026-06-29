@@ -95,6 +95,14 @@ async function handleCheckPerform(params, id, res) {
 
 // Helper to check status eligibility and amount
 function verifyOrderEligibility(order, amountInTiyins) {
+    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+        return {
+            allow: false,
+            errorCode: -31052,
+            errorMessage: 'Статус заказа не допускает оплату'
+        };
+    }
+
     let expectedAmount;
     if (order.status === 'waiting_delivery_payment') {
         expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
@@ -111,14 +119,6 @@ function verifyOrderEligibility(order, amountInTiyins) {
             allow: false,
             errorCode: -31001,
             errorMessage: 'Неверная сумма платежа'
-        };
-    }
-
-    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
-        return {
-            allow: false,
-            errorCode: -31052,
-            errorMessage: 'Статус заказа не допускает оплату'
         };
     }
 
