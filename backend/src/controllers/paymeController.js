@@ -4,7 +4,7 @@ const db = require('../db');
 const Order = require('../models/orderModel');
 const telegramService = require('../services/telegramService');
 
-// Payme transaction states
+// Payme transaction states (strict number types)
 const STATE_CREATED = 1;
 const STATE_PERFORMED = 2;
 const STATE_CANCELLED_BEFORE_PAY = -1;
@@ -12,9 +12,10 @@ const STATE_CANCELLED_AFTER_PAY = -2;
 
 const TRANSACTION_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
 
+// Router RPC-methods
 exports.handleBilling = async (req, res, next) => {
     try {
-        // 1) Basic Authentication
+        // Basic Authentication
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Basic ')) {
             return respondError(res, req.body.id, -32504, 'Insufficient privilege');
@@ -58,12 +59,12 @@ exports.handleBilling = async (req, res, next) => {
 function respondSuccess(res, id, result) {
     return res.status(200).json({
         jsonrpc: '2.0',
-        id,
+        id: Number(id),
         result
     });
 }
 
-// Helper: respond JSON-RPC error
+// Helper: respond JSON-RPC error (localized messages for merchant range)
 function respondError(res, id, code, message, data = null) {
     const errorMsg = (typeof message === 'string' && code >= -31999 && code <= -31000) ? {
         ru: message,
@@ -73,23 +74,52 @@ function respondError(res, id, code, message, data = null) {
 
     return res.status(200).json({
         jsonrpc: '2.0',
-        id,
+        id: id ? Number(id) : null,
         error: {
-            code,
+            code: Number(code),
             message: errorMsg,
             ...(data ? { data } : {})
         }
     });
 }
 
+// Helper: check status eligibility and amount
+function verifyOrderEligibility(order, amountInTiyins) {
+    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+        return {
+            allow: false,
+            errorCode: -31052,
+            errorMessage: 'Статус заказа не допускает оплату'
+        };
+    }
+
+    let expectedAmount;
+    if (order.status === 'waiting_delivery_payment') {
+        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
+    } else {
+        expectedAmount = Math.round(parseFloat(order.price) * 100);
+    }
+
+    if (isNaN(expectedAmount)) {
+        expectedAmount = 0;
+    }
+
+    if (Math.abs(expectedAmount - Number(amountInTiyins)) > 1) { // allow 1 tiyin difference for float accuracy
+        return {
+            allow: false,
+            errorCode: -31001,
+            errorMessage: 'Неверная сумма платежа'
+        };
+    }
+
+    return { allow: true };
+}
+
 // Helper to build detail object for Payme fiscalization
 function buildReceiptDetail(order, amountInTiyins) {
     const isDelivery = order.status === 'waiting_delivery_payment';
-    
-    // Default values for fiscalization
     const vatPercent = Number(process.env.PAYME_VAT_PERCENT) || 0; 
     
-    // Fallback ИКПУ and package codes
     const defaultDeliveryIkpu = process.env.PAYME_DELIVERY_IKPU || '10901001001000000';
     const defaultProductIkpu = process.env.PAYME_PRODUCT_IKPU || '08703002001000001';
     
@@ -97,7 +127,6 @@ function buildReceiptDetail(order, amountInTiyins) {
     const defaultProductPackageCode = process.env.PAYME_PRODUCT_PACKAGE_CODE || '123456';
 
     const items = [];
-
     if (isDelivery) {
         items.push({
             title: `Доставка заказа #${order.id}`,
@@ -108,12 +137,10 @@ function buildReceiptDetail(order, amountInTiyins) {
             vat_percent: vatPercent
         });
     } else {
-        const count = Number(order.quantity) || 1;
-        const unitPrice = Math.round(Number(amountInTiyins) / count);
         items.push({
             title: order.item_name || 'Автозапчасти',
-            price: unitPrice,
-            count: count,
+            price: Number(amountInTiyins),
+            count: 1,
             code: defaultProductIkpu,
             package_code: defaultProductPackageCode,
             vat_percent: vatPercent
@@ -122,7 +149,7 @@ function buildReceiptDetail(order, amountInTiyins) {
 
     return {
         receipt_type: 0,
-        items: items
+        items
     };
 }
 
@@ -174,42 +201,10 @@ async function handleCheckPerform(params, id, res) {
     });
 }
 
-// Helper to check status eligibility and amount
-function verifyOrderEligibility(order, amountInTiyins) {
-    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
-        return {
-            allow: false,
-            errorCode: -31052,
-            errorMessage: 'Статус заказа не допускает оплату'
-        };
-    }
-
-    let expectedAmount;
-    if (order.status === 'waiting_delivery_payment') {
-        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
-    } else {
-        expectedAmount = Math.round(parseFloat(order.price) * 100);
-    }
-
-    if (isNaN(expectedAmount)) {
-        expectedAmount = 0;
-    }
-
-    if (Math.abs(expectedAmount - amountInTiyins) > 1) { // allow 1 tiyin rounding difference
-        return {
-            allow: false,
-            errorCode: -31001,
-            errorMessage: 'Неверная сумма платежа'
-        };
-    }
-
-    return { allow: true };
-}
-
 // Handler: CreateTransaction
 async function handleCreateTransaction(params, id, res) {
     const { id: paymeTxId, time, amount, account } = params;
-    const orderId = account ? account.order_id : null;
+    const orderId = account ? Number(account.order_id) : null;
 
     if (!orderId) {
         return respondError(res, id, -31050, 'order_id is required', 'order_id');
@@ -225,17 +220,13 @@ async function handleCreateTransaction(params, id, res) {
     const existingTx = txRes.rows[0];
 
     if (existingTx) {
-        // If transaction exists, check if details match
         if (Number(existingTx.amount) !== Number(amount)) {
             return respondError(res, id, -31001, 'Неверная сумма платежа');
         }
 
-        // If transaction exists, check state
         if (existingTx.state === STATE_CREATED) {
-            // Check timeout
             const now = Date.now();
             if (now - Number(existingTx.create_time) > TRANSACTION_TIMEOUT) {
-                // Cancel transaction on timeout
                 await db.query(
                     'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
                     [STATE_CANCELLED_BEFORE_PAY, now, paymeTxId]
@@ -243,12 +234,11 @@ async function handleCreateTransaction(params, id, res) {
                 return respondError(res, id, -31008, 'Transaction timed out');
             }
 
-            const detail = buildReceiptDetail(order, amount);
             return respondSuccess(res, id, {
                 create_time: Number(existingTx.time),
                 transaction: existingTx.id,
-                state: existingTx.state,
-                detail: detail
+                state: Number(existingTx.state),
+                receivers: null
             });
         } else {
             return respondError(res, id, -31008, 'Transaction is not active');
@@ -279,12 +269,11 @@ async function handleCreateTransaction(params, id, res) {
         [paymeTxId, time, STATE_CREATED, amount, orderId, now]
     );
 
-    const detail = buildReceiptDetail(order, amount);
     return respondSuccess(res, id, {
         create_time: Number(time),
         transaction: paymeTxId,
         state: STATE_CREATED,
-        detail: detail
+        receivers: null
     });
 }
 
@@ -302,7 +291,6 @@ async function handlePerformTransaction(params, id, res) {
     const now = Date.now();
 
     if (tx.state === STATE_CREATED) {
-        // 1) Verify timeout
         if (now - Number(tx.create_time) > TRANSACTION_TIMEOUT) {
             await db.query(
                 'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
@@ -311,13 +299,12 @@ async function handlePerformTransaction(params, id, res) {
             return respondError(res, id, -31008, 'Transaction timed out');
         }
 
-        // 2) Update transaction state to performed
         await db.query(
             'UPDATE payme_transactions SET state = $1, perform_time = $2 WHERE id = $3',
             [STATE_PERFORMED, now, paymeTxId]
         );
 
-        // 3) Update corresponding order status and notify via Telegram
+        // Update corresponding order status and notify via Telegram
         const order = await Order.getById(tx.order_id);
         if (order) {
             if (order.status === 'offer_selected') {
@@ -337,7 +324,6 @@ async function handlePerformTransaction(params, id, res) {
             state: STATE_PERFORMED
         });
     } else if (tx.state === STATE_PERFORMED) {
-        // If already performed, return existing performance details
         return respondSuccess(res, id, {
             transaction: paymeTxId,
             perform_time: Number(tx.perform_time),
@@ -362,7 +348,6 @@ async function handleCancelTransaction(params, id, res) {
     const now = Date.now();
 
     if (tx.state === STATE_CREATED) {
-        // Cancel created transaction before payment
         await db.query(
             'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = $3 WHERE id = $4',
             [STATE_CANCELLED_BEFORE_PAY, now, reason, paymeTxId]
@@ -374,10 +359,8 @@ async function handleCancelTransaction(params, id, res) {
             state: STATE_CANCELLED_BEFORE_PAY
         });
     } else if (tx.state === STATE_PERFORMED) {
-        // Cancel performed transaction (Refund request)
         const order = await Order.getById(tx.order_id);
         if (order) {
-            // Cancellation only allowed if order has not moved further down shipping/completion cycle
             const nonCancellableStatuses = [
                 'shipped_by_seller', 'logistics_review', 
                 'shipped_to_uzbekistan', 'delivered'
@@ -386,7 +369,6 @@ async function handleCancelTransaction(params, id, res) {
                 return respondError(res, id, -31007, 'Cannot cancel transaction, product already shipped');
             }
 
-            // Revert order status
             if (order.status === 'paid_product') {
                 await Order.update(order.id, { status: 'offer_selected' });
             } else if (order.status === 'delivery_paid') {
@@ -405,11 +387,10 @@ async function handleCancelTransaction(params, id, res) {
             state: STATE_CANCELLED_AFTER_PAY
         });
     } else {
-        // If already cancelled, return existing details
         return respondSuccess(res, id, {
             transaction: paymeTxId,
             cancel_time: Number(tx.cancel_time),
-            state: tx.state
+            state: Number(tx.state)
         });
     }
 }
@@ -430,8 +411,8 @@ async function handleCheckTransaction(params, id, res) {
         perform_time: tx.perform_time ? Number(tx.perform_time) : 0,
         cancel_time: tx.cancel_time ? Number(tx.cancel_time) : 0,
         transaction: tx.id,
-        state: tx.state,
-        reason: tx.reason || null
+        state: Number(tx.state),
+        reason: tx.reason !== null && tx.reason !== undefined ? Number(tx.reason) : null
     });
 }
 
@@ -459,8 +440,8 @@ async function handleGetStatement(params, id, res) {
             perform_time: tx.perform_time ? Number(tx.perform_time) : 0,
             cancel_time: tx.cancel_time ? Number(tx.cancel_time) : 0,
             transaction: tx.id,
-            state: tx.state,
-            reason: tx.reason || null
+            state: Number(tx.state),
+            reason: tx.reason !== null && tx.reason !== undefined ? Number(tx.reason) : null
         }));
 
         return respondSuccess(res, id, { transactions });
