@@ -134,6 +134,15 @@ async function handleCheckPerform(params, id, res) {
         return respondError(res, id, -31050, 'Заказ не найден', 'order_id');
     }
 
+    // Verify if there is already another active transaction for this order
+    const activeTxRes = await db.query(
+        'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = $2',
+        [orderId, STATE_CREATED]
+    );
+    if (activeTxRes.rows.length > 0) {
+        return respondError(res, id, -31099, 'Another transaction is pending for this order', 'order_id');
+    }
+
     // Verify order status eligibility and amount
     const check = verifyOrderEligibility(order, amount);
     if (!check.allow) {
