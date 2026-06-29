@@ -314,9 +314,19 @@ exports.confirmProductPayment = async (req, res, next) => {
         if (req.user.role !== 'admin') return next(new AppError('Admin only', 403));
         const { orderId } = req.params;
 
-        await Order.update(orderId, { status: 'paid_product' });
-        await telegramService.notifyOrderUpdate(orderId, 'paid_product');
-        await telegramService.notifySupplierOrderUpdate(orderId, 'paid_product');
+        const order = await Order.getById(orderId);
+        if (order && order.status !== 'paid_product') {
+            await Order.update(orderId, { status: 'paid_product' });
+            if (order.product_id) {
+                const orderQty = order.quantity || 1;
+                await db.query(
+                    'UPDATE products SET quantity = GREATEST(0, quantity - $1) WHERE id = $2',
+                    [orderQty, order.product_id]
+                );
+            }
+            await telegramService.notifyOrderUpdate(orderId, 'paid_product');
+            await telegramService.notifySupplierOrderUpdate(orderId, 'paid_product');
+        }
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);

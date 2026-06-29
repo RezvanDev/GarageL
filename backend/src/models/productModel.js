@@ -6,9 +6,10 @@ class Product {
         const params = [];
         const whereClauses = [];
 
-        // By default, only show approved products
+        // By default, only show approved products and products in stock
         if (filters.includeUnapproved !== 'true') {
             whereClauses.push('is_approved = true');
+            whereClauses.push('quantity > 0');
         }
 
         if (filters.brand) {

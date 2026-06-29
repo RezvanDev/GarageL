@@ -327,6 +327,13 @@ async function handlePerformTransaction(params, id, res) {
                 telegramService.notifyLogistsReadyToShip(order.id).catch(err => console.error(err));
             } else {
                 await Order.update(order.id, { status: 'paid_product' });
+                if (order.product_id) {
+                    const orderQty = order.quantity || 1;
+                    await db.query(
+                        'UPDATE products SET quantity = GREATEST(0, quantity - $1) WHERE id = $2',
+                        [orderQty, order.product_id]
+                    );
+                }
                 telegramService.notifyOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
                 telegramService.notifySupplierOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
             }

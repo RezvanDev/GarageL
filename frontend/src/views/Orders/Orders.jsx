@@ -5,19 +5,19 @@ import { SUPPLIER_CATEGORIES } from '../../data/constants';
 
 const formatStatus = (s) => {
     const map = {
-        'pending': 'На рассмотрении',
-        'offer_created': 'Есть предложение',
-        'offer_selected': 'Выбрано (ожидает оплаты)',
-        'waiting_payment': 'Ожидает оплаты',
-        'paid_product': 'Товар оплачен',
-        'shipped_by_seller': 'В пути на склад',
-        'waiting_delivery_payment': 'Прибыл на склад',
-        'delivery_paid': 'Доставка оплачена',
-        'shipped_to_uzbekistan': 'В пути в Ташкент',
-        'delivered': 'Готов к выдаче',
-        'cancelled': 'Отменен'
+        'pending': 'PENDING',
+        'offer_created': 'OFFER_CREATED',
+        'offer_selected': 'OFFER_SELECTED',
+        'waiting_payment': 'WAITING_PAYMENT',
+        'paid_product': 'PAID_PRODUCT',
+        'shipped_by_seller': 'SHIPPED_BY_SELLER',
+        'waiting_delivery_payment': 'WAITING_DELIVERY_PAYMENT',
+        'delivery_paid': 'DELIVERY_PAID',
+        'shipped_to_uzbekistan': 'SHIPPED_TO_UZBEKISTAN',
+        'delivered': 'DELIVERED',
+        'cancelled': 'CANCELLED'
     };
-    return map[s] || s;
+    return map[s] || String(s).toUpperCase();
 };
 
 export const Orders = ({ orders, onSelectOrder, user }) => (
