@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const db = require('../db');
 const Order = require('../models/orderModel');
 const telegramService = require('../services/telegramService');
@@ -39,6 +41,10 @@ exports.handleBilling = async (req, res, next) => {
                 return await handleCancelTransaction(params, id, res);
             case 'CheckTransaction':
                 return await handleCheckTransaction(params, id, res);
+            case 'GetStatement':
+                return await handleGetStatement(params, id, res);
+            case 'ChangePassword':
+                return await handleChangePassword(params, id, res);
             default:
                 return respondError(res, id, -32601, 'Method not found');
         }
@@ -131,7 +137,8 @@ async function handleCheckPerform(params, id, res) {
     // Verify order status eligibility and amount
     const check = verifyOrderEligibility(order, amount);
     if (!check.allow) {
-        return respondError(res, id, check.errorCode, check.errorMessage);
+        const errorData = (check.errorCode >= -31099 && check.errorCode <= -31050) ? 'order_id' : null;
+        return respondError(res, id, check.errorCode, check.errorMessage, errorData);
     }
 
     const detail = buildReceiptDetail(order, amount);
@@ -225,7 +232,8 @@ async function handleCreateTransaction(params, id, res) {
     // 2) Verify order is eligible to create transaction
     const check = verifyOrderEligibility(order, amount);
     if (!check.allow) {
-        return respondError(res, id, check.errorCode, check.errorMessage);
+        const errorData = (check.errorCode >= -31099 && check.errorCode <= -31050) ? 'order_id' : null;
+        return respondError(res, id, check.errorCode, check.errorMessage, errorData);
     }
 
     // 3) Verify if there is already another active transaction for this order
@@ -349,7 +357,7 @@ async function handleCancelTransaction(params, id, res) {
                 'shipped_to_uzbekistan', 'delivered'
             ];
             if (nonCancellableStatuses.includes(order.status)) {
-                return respondError(res, id, -31008, 'Cannot cancel transaction, product already shipped');
+                return respondError(res, id, -31007, 'Cannot cancel transaction, product already shipped');
             }
 
             // Revert order status
@@ -399,4 +407,70 @@ async function handleCheckTransaction(params, id, res) {
         state: tx.state,
         reason: tx.reason || null
     });
+}
+
+// Handler: GetStatement
+async function handleGetStatement(params, id, res) {
+    const { from, to } = params;
+    if (!from || !to) {
+        return respondError(res, id, -32600, 'from and to parameters are required');
+    }
+
+    try {
+        const txsRes = await db.query(
+            'SELECT * FROM payme_transactions WHERE time >= $1 AND time <= $2 ORDER BY time ASC',
+            [from, to]
+        );
+
+        const transactions = txsRes.rows.map(tx => ({
+            id: tx.id,
+            time: Number(tx.time),
+            amount: Number(tx.amount),
+            account: {
+                order_id: String(tx.order_id)
+            },
+            create_time: Number(tx.create_time),
+            perform_time: tx.perform_time ? Number(tx.perform_time) : 0,
+            cancel_time: tx.cancel_time ? Number(tx.cancel_time) : 0,
+            transaction: tx.id,
+            state: tx.state,
+            reason: tx.reason || null
+        }));
+
+        return respondSuccess(res, id, { transactions });
+    } catch (err) {
+        console.error('Payme GetStatement error:', err);
+        return respondError(res, id, -32400, 'System error during statement retrieval');
+    }
+}
+
+// Handler: ChangePassword
+async function handleChangePassword(params, id, res) {
+    const { password } = params;
+    if (!password) {
+        return respondError(res, id, -32600, 'Password is required');
+    }
+
+    try {
+        const envPath = path.join(__dirname, '../../.env');
+        let envContent = '';
+        if (fs.existsSync(envPath)) {
+            envContent = fs.readFileSync(envPath, 'utf8');
+        }
+
+        let updatedEnv = '';
+        if (envContent.includes('PAYME_KEY=')) {
+            updatedEnv = envContent.replace(/PAYME_KEY=([^ \r\n]*)/, `PAYME_KEY=${password}`);
+        } else {
+            updatedEnv = envContent + `\nPAYME_KEY=${password}`;
+        }
+
+        fs.writeFileSync(envPath, updatedEnv, 'utf8');
+        process.env.PAYME_KEY = password;
+
+        return respondSuccess(res, id, { success: true });
+    } catch (err) {
+        console.error('Failed to change Payme key:', err);
+        return respondError(res, id, -32400, 'System error during password change');
+    }
 }
