@@ -242,7 +242,7 @@ async function handleCreateTransaction(params, id, res) {
         [orderId, STATE_CREATED]
     );
     if (activeTxRes.rows.length > 0) {
-        return respondError(res, id, -31099, 'Another transaction is pending for this order');
+        return respondError(res, id, -31099, 'Another transaction is pending for this order', 'order_id');
     }
 
     // 4) Create new transaction in DB
