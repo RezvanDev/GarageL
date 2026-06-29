@@ -89,12 +89,14 @@ class TelegramService {
                     'pending': 'Ожидает обработки',
                     'offer_created': 'Поступило предложение ✨',
                     'offer_selected': 'Вы выбрали предложение',
+                    'waiting_payment': 'Ожидает оплаты 💳',
                     'paid_product': 'Товар оплачен ✅',
                     'shipped_by_seller': 'Отправлено продавцом 🚚',
                     'waiting_delivery_payment': 'Прибыло на склад. Ожидает оплаты доставки 📦',
                     'delivery_paid': 'Доставка оплачена',
                     'shipped_to_uzbekistan': 'Отправлено в Узбекистан ✈️',
-                    'delivered': 'Доставлено! 🎉'
+                    'delivered': 'Доставлено! 🎉',
+                    'cancelled': 'Отменен ❌'
                 };
 
                 const statusText = statusMap[status] || status;

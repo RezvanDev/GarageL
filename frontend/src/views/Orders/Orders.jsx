@@ -8,12 +8,14 @@ const formatStatus = (s) => {
         'pending': 'На рассмотрении',
         'offer_created': 'Есть предложение',
         'offer_selected': 'Выбрано (ожидает оплаты)',
+        'waiting_payment': 'Ожидает оплаты',
         'paid_product': 'Товар оплачен',
         'shipped_by_seller': 'В пути на склад',
         'waiting_delivery_payment': 'Прибыл на склад',
         'delivery_paid': 'Доставка оплачена',
         'shipped_to_uzbekistan': 'В пути в Ташкент',
-        'delivered': 'Готов к выдаче'
+        'delivered': 'Готов к выдаче',
+        'cancelled': 'Отменен'
     };
     return map[s] || s;
 };

@@ -59,14 +59,17 @@ exports.handleBilling = async (req, res, next) => {
 function respondSuccess(res, id, result) {
     return res.status(200).json({
         jsonrpc: '2.0',
-        id: Number(id),
+        id: id ? Number(id) : null,
         result
     });
 }
 
 // Helper: respond JSON-RPC error (localized messages for merchant range)
 function respondError(res, id, code, message, data = null) {
-    const errorMsg = (typeof message === 'string' && code >= -31999 && code <= -31000) ? {
+    const isOrderError = code >= -31099 && code <= -31050;
+    const finalData = isOrderError ? (data || 'order_id') : data;
+
+    const errorMsg = (typeof message === 'string') ? {
         ru: message,
         uz: message,
         en: message
@@ -78,46 +81,15 @@ function respondError(res, id, code, message, data = null) {
         error: {
             code: Number(code),
             message: errorMsg,
-            ...(data ? { data } : {})
+            ...(finalData ? { data: finalData } : {})
         }
     });
 }
 
-// Helper: check status eligibility and amount
-function verifyOrderEligibility(order, amountInTiyins) {
-    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
-        return {
-            allow: false,
-            errorCode: -31052,
-            errorMessage: 'Статус заказа не допускает оплату'
-        };
-    }
-
-    let expectedAmount;
-    if (order.status === 'waiting_delivery_payment') {
-        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
-    } else {
-        expectedAmount = Math.round(parseFloat(order.price) * 100);
-    }
-
-    if (isNaN(expectedAmount)) {
-        expectedAmount = 0;
-    }
-
-    if (Math.abs(expectedAmount - Number(amountInTiyins)) > 1) { // allow 1 tiyin difference for float accuracy
-        return {
-            allow: false,
-            errorCode: -31001,
-            errorMessage: 'Неверная сумма платежа'
-        };
-    }
-
-    return { allow: true };
-}
-
 // Helper to build detail object for Payme fiscalization
 function buildReceiptDetail(order, amountInTiyins) {
-    const isDelivery = order.status === 'waiting_delivery_payment';
+    const isDelivery = order.status === 'waiting_delivery_payment' || 
+                       (order.status === 'waiting_payment' && order.shipping_price);
     const vatPercent = Number(process.env.PAYME_VAT_PERCENT) || 0; 
     
     const defaultDeliveryIkpu = process.env.PAYME_DELIVERY_IKPU || '10901001001000000';
@@ -156,10 +128,10 @@ function buildReceiptDetail(order, amountInTiyins) {
 // Handler: CheckPerformTransaction
 async function handleCheckPerform(params, id, res) {
     const { amount, account } = params;
-    const orderId = account ? Number(account.order_id) : null;
+    const orderId = account ? (account.order_id || account.orderId) : null;
 
     if (!orderId) {
-        return respondError(res, id, -31050, 'order_id is required', 'order_id');
+        return respondError(res, id, -31050, 'ID заказа не указан', 'order_id');
     }
 
     const order = await Order.getById(orderId);
@@ -167,52 +139,42 @@ async function handleCheckPerform(params, id, res) {
         return respondError(res, id, -31050, 'Заказ не найден', 'order_id');
     }
 
-    // Check transaction state in payme_transactions table to handle "Обрабатывается" and "Заблокирован"
-    try {
-        const txRes = await db.query(
-            'SELECT * FROM payme_transactions WHERE order_id = $1 ORDER BY time DESC LIMIT 1',
-            [orderId]
-        );
-        const lastTx = txRes.rows[0];
-
-        if (lastTx) {
-            if (lastTx.state === STATE_CREATED) {
-                return respondError(res, id, -31099, 'Another transaction is pending for this order', 'order_id');
-            }
-            if (lastTx.state === STATE_PERFORMED) {
-                return respondError(res, id, -31052, 'Order is already paid', 'order_id');
-            }
-        }
-    } catch (err) {
-        console.error('Payme CheckPerformTransaction database check error:', err);
+    // Verify order status eligibility (only allow if offer_selected or waiting_delivery_payment)
+    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+        return respondError(res, id, -31050, 'Заказ недоступен для оплаты', 'order_id');
     }
 
-    // Verify order status eligibility and amount
-    const check = verifyOrderEligibility(order, amount);
-    if (!check.allow) {
-        const errorData = (check.errorCode >= -31099 && check.errorCode <= -31050) ? 'order_id' : null;
-        return respondError(res, id, check.errorCode, check.errorMessage, errorData);
+    // Verify amount matching
+    let expectedAmount;
+    if (order.status === 'waiting_delivery_payment') {
+        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
+    } else {
+        expectedAmount = Math.round(parseFloat(order.price) * 100);
     }
 
-    const detail = buildReceiptDetail(order, amount);
-    return respondSuccess(res, id, { 
-        allow: true, 
-        detail: detail
-    });
+    if (isNaN(expectedAmount) || expectedAmount <= 0) {
+        expectedAmount = 0;
+    }
+
+    if (Number(amount) !== expectedAmount) {
+        return respondError(res, id, -31001, 'Неверная сумма платежа');
+    }
+
+    const result = { allow: true };
+    if (typeof buildReceiptDetail === 'function') {
+        result.detail = buildReceiptDetail(order, amount);
+    }
+
+    return respondSuccess(res, id, result);
 }
 
 // Handler: CreateTransaction
 async function handleCreateTransaction(params, id, res) {
     const { id: paymeTxId, time, amount, account } = params;
-    const orderId = account ? Number(account.order_id) : null;
+    const orderId = account ? (account.order_id || account.orderId) : null;
 
     if (!orderId) {
-        return respondError(res, id, -31050, 'order_id is required', 'order_id');
-    }
-
-    const order = await Order.getById(orderId);
-    if (!order) {
-        return respondError(res, id, -31050, 'Заказ не найден', 'order_id');
+        return respondError(res, id, -31050, 'ID заказа не указан', 'order_id');
     }
 
     // 1) Verify if transaction already exists in DB
@@ -224,32 +186,63 @@ async function handleCreateTransaction(params, id, res) {
             return respondError(res, id, -31001, 'Неверная сумма платежа');
         }
 
-        if (existingTx.state === STATE_CREATED) {
+        if (Number(existingTx.state) === STATE_CREATED) {
             const now = Date.now();
             if (now - Number(existingTx.create_time) > TRANSACTION_TIMEOUT) {
                 await db.query(
                     'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
                     [STATE_CANCELLED_BEFORE_PAY, now, paymeTxId]
                 );
-                return respondError(res, id, -31008, 'Transaction timed out');
+                
+                const order = await Order.getById(existingTx.order_id);
+                if (order && order.status === 'waiting_payment') {
+                    const performedTxRes = await db.query(
+                        'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2',
+                        [order.id]
+                    );
+                    const hasPaidProduct = performedTxRes.rows.length > 0;
+                    const revertedStatus = hasPaidProduct ? 'waiting_delivery_payment' : 'offer_selected';
+                    await Order.update(order.id, { status: revertedStatus });
+                }
+
+                return respondError(res, id, -31008, 'Время ожидания транзакции истекло');
             }
 
             return respondSuccess(res, id, {
-                create_time: Number(existingTx.time),
+                create_time: Number(existingTx.create_time),
                 transaction: existingTx.id,
-                state: Number(existingTx.state),
+                state: 1,
                 receivers: null
             });
         } else {
-            return respondError(res, id, -31008, 'Transaction is not active');
+            return respondError(res, id, -31008, 'Транзакция не активна');
         }
     }
 
-    // 2) Verify order is eligible to create transaction
-    const check = verifyOrderEligibility(order, amount);
-    if (!check.allow) {
-        const errorData = (check.errorCode >= -31099 && check.errorCode <= -31050) ? 'order_id' : null;
-        return respondError(res, id, check.errorCode, check.errorMessage, errorData);
+    // 2) Verify order eligibility
+    const order = await Order.getById(orderId);
+    if (!order) {
+        return respondError(res, id, -31050, 'Заказ не найден', 'order_id');
+    }
+
+    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+        return respondError(res, id, -31050, 'Заказ недоступен для оплаты', 'order_id');
+    }
+
+    // Verify amount matching
+    let expectedAmount;
+    if (order.status === 'waiting_delivery_payment') {
+        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
+    } else {
+        expectedAmount = Math.round(parseFloat(order.price) * 100);
+    }
+
+    if (isNaN(expectedAmount) || expectedAmount <= 0) {
+        expectedAmount = 0;
+    }
+
+    if (Number(amount) !== expectedAmount) {
+        return respondError(res, id, -31001, 'Неверная сумма платежа');
     }
 
     // 3) Verify if there is already another active transaction for this order
@@ -258,7 +251,7 @@ async function handleCreateTransaction(params, id, res) {
         [orderId, STATE_CREATED]
     );
     if (activeTxRes.rows.length > 0) {
-        return respondError(res, id, -31099, 'Another transaction is pending for this order', 'order_id');
+        return respondError(res, id, -31099, 'Для данного заказа уже есть активная транзакция', 'order_id');
     }
 
     // 4) Create new transaction in DB
@@ -269,8 +262,11 @@ async function handleCreateTransaction(params, id, res) {
         [paymeTxId, time, STATE_CREATED, amount, orderId, now]
     );
 
+    // Update order status to waiting_payment
+    await Order.update(orderId, { status: 'waiting_payment' });
+
     return respondSuccess(res, id, {
-        create_time: Number(time),
+        create_time: now,
         transaction: paymeTxId,
         state: STATE_CREATED,
         receivers: null
@@ -285,18 +281,30 @@ async function handlePerformTransaction(params, id, res) {
     const tx = txRes.rows[0];
 
     if (!tx) {
-        return respondError(res, id, -31003, 'Transaction not found');
+        return respondError(res, id, -31003, 'Транзакция не найдена');
     }
 
     const now = Date.now();
 
-    if (tx.state === STATE_CREATED) {
+    if (Number(tx.state) === STATE_CREATED) {
         if (now - Number(tx.create_time) > TRANSACTION_TIMEOUT) {
             await db.query(
                 'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
                 [STATE_CANCELLED_BEFORE_PAY, now, paymeTxId]
             );
-            return respondError(res, id, -31008, 'Transaction timed out');
+
+            const order = await Order.getById(tx.order_id);
+            if (order && order.status === 'waiting_payment') {
+                const performedTxRes = await db.query(
+                    'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2',
+                    [order.id]
+                );
+                const hasPaidProduct = performedTxRes.rows.length > 0;
+                const revertedStatus = hasPaidProduct ? 'waiting_delivery_payment' : 'offer_selected';
+                await Order.update(order.id, { status: revertedStatus });
+            }
+
+            return respondError(res, id, -31008, 'Время ожидания транзакции истекло');
         }
 
         await db.query(
@@ -307,14 +315,20 @@ async function handlePerformTransaction(params, id, res) {
         // Update corresponding order status and notify via Telegram
         const order = await Order.getById(tx.order_id);
         if (order) {
-            if (order.status === 'offer_selected') {
-                await Order.update(order.id, { status: 'paid_product' });
-                telegramService.notifyOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
-                telegramService.notifySupplierOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
-            } else if (order.status === 'waiting_delivery_payment') {
+            const performedTxRes = await db.query(
+                'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2 AND id != $2',
+                [tx.order_id, paymeTxId]
+            );
+            const isDeliveryPayment = performedTxRes.rows.length > 0;
+
+            if (isDeliveryPayment) {
                 await Order.update(order.id, { status: 'delivery_paid' });
                 telegramService.notifyOrderUpdate(order.id, 'delivery_paid').catch(err => console.error(err));
                 telegramService.notifyLogistsReadyToShip(order.id).catch(err => console.error(err));
+            } else {
+                await Order.update(order.id, { status: 'paid_product' });
+                telegramService.notifyOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
+                telegramService.notifySupplierOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
             }
         }
 
@@ -323,14 +337,14 @@ async function handlePerformTransaction(params, id, res) {
             perform_time: now,
             state: STATE_PERFORMED
         });
-    } else if (tx.state === STATE_PERFORMED) {
+    } else if (Number(tx.state) === STATE_PERFORMED) {
         return respondSuccess(res, id, {
             transaction: paymeTxId,
             perform_time: Number(tx.perform_time),
             state: STATE_PERFORMED
         });
     } else {
-        return respondError(res, id, -31008, 'Cannot perform cancelled transaction');
+        return respondError(res, id, -31008, 'Невозможно провести отмененную транзакцию');
     }
 }
 
@@ -342,44 +356,50 @@ async function handleCancelTransaction(params, id, res) {
     const tx = txRes.rows[0];
 
     if (!tx) {
-        return respondError(res, id, -31003, 'Transaction not found');
+        return respondError(res, id, -31003, 'Транзакция не найдена');
     }
 
     const now = Date.now();
+    const order = await Order.getById(tx.order_id);
 
-    if (tx.state === STATE_CREATED) {
+    if (order) {
+        const nonCancellableStatuses = [
+            'shipped_by_seller', 'logistics_review', 
+            'shipped_to_uzbekistan', 'delivered'
+        ];
+        if (nonCancellableStatuses.includes(order.status)) {
+            return respondError(res, id, -31007, 'Невозможно отменить транзакцию, товар уже отправлен');
+        }
+    }
+
+    const state = Number(tx.state);
+
+    if (state === STATE_CREATED) {
         await db.query(
             'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = $3 WHERE id = $4',
             [STATE_CANCELLED_BEFORE_PAY, now, reason, paymeTxId]
         );
+
+        if (order) {
+            await Order.update(order.id, { status: 'cancelled' });
+            telegramService.notifyOrderUpdate(order.id, 'cancelled').catch(err => console.error(err));
+        }
 
         return respondSuccess(res, id, {
             transaction: paymeTxId,
             cancel_time: now,
             state: STATE_CANCELLED_BEFORE_PAY
         });
-    } else if (tx.state === STATE_PERFORMED) {
-        const order = await Order.getById(tx.order_id);
-        if (order) {
-            const nonCancellableStatuses = [
-                'shipped_by_seller', 'logistics_review', 
-                'shipped_to_uzbekistan', 'delivered'
-            ];
-            if (nonCancellableStatuses.includes(order.status)) {
-                return respondError(res, id, -31007, 'Cannot cancel transaction, product already shipped');
-            }
-
-            if (order.status === 'paid_product') {
-                await Order.update(order.id, { status: 'offer_selected' });
-            } else if (order.status === 'delivery_paid') {
-                await Order.update(order.id, { status: 'waiting_delivery_payment' });
-            }
-        }
-
+    } else if (state === STATE_PERFORMED) {
         await db.query(
             'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = $3 WHERE id = $4',
             [STATE_CANCELLED_AFTER_PAY, now, reason, paymeTxId]
         );
+
+        if (order) {
+            await Order.update(order.id, { status: 'cancelled' });
+            telegramService.notifyOrderUpdate(order.id, 'cancelled').catch(err => console.error(err));
+        }
 
         return respondSuccess(res, id, {
             transaction: paymeTxId,
@@ -403,7 +423,7 @@ async function handleCheckTransaction(params, id, res) {
     const tx = txRes.rows[0];
 
     if (!tx) {
-        return respondError(res, id, -31003, 'Transaction not found');
+        return respondError(res, id, -31003, 'Транзакция не найдена');
     }
 
     return respondSuccess(res, id, {
@@ -420,12 +440,12 @@ async function handleCheckTransaction(params, id, res) {
 async function handleGetStatement(params, id, res) {
     const { from, to } = params;
     if (!from || !to) {
-        return respondError(res, id, -32600, 'from and to parameters are required');
+        return respondError(res, id, -32600, 'Параметры from и to обязательны');
     }
 
     try {
         const txsRes = await db.query(
-            'SELECT * FROM payme_transactions WHERE time >= $1 AND time <= $2 ORDER BY time ASC',
+            'SELECT * FROM payme_transactions WHERE create_time >= $1 AND create_time <= $2 ORDER BY create_time ASC',
             [from, to]
         );
 
@@ -447,7 +467,7 @@ async function handleGetStatement(params, id, res) {
         return respondSuccess(res, id, { transactions });
     } catch (err) {
         console.error('Payme GetStatement error:', err);
-        return respondError(res, id, -32400, 'System error during statement retrieval');
+        return respondError(res, id, -32400, 'Системная ошибка при получении выписки');
     }
 }
 

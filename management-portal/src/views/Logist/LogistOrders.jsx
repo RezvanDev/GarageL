@@ -33,7 +33,7 @@ export const LogistOrders = () => {
 
     const TABS = [
         { id: 'acceptance', label: 'Приемка', status: ['shipped_by_seller'] },
-        { id: 'warehouse', label: 'На складе', status: ['arrived_warehouse', 'logistics_review', 'waiting_delivery_payment'] },
+        { id: 'warehouse', label: 'На складе', status: ['arrived_warehouse', 'logistics_review', 'waiting_delivery_payment', 'waiting_payment'] },
         { id: 'shipping', label: 'Отправка', status: ['delivery_paid', 'shipped_to_uzbekistan'] },
         { id: 'history', label: 'История', status: ['delivered'] }
     ];
@@ -45,7 +45,7 @@ export const LogistOrders = () => {
     const fetchOrders = async () => {
         setLoading(true);
         try {
-            const allStatuses = 'shipped_by_seller,arrived_warehouse,waiting_delivery_payment,delivery_paid,shipped_to_uzbekistan,delivered';
+            const allStatuses = 'shipped_by_seller,arrived_warehouse,waiting_delivery_payment,waiting_payment,delivery_paid,shipped_to_uzbekistan,delivered';
             const res = await api.orders.getByStatus(allStatuses);
             setOrders(res.data.orders);
         } catch (err) {
@@ -263,7 +263,7 @@ export const LogistOrders = () => {
                             </button>
                         )}
 
-                        {(order.status === 'arrived_warehouse' || order.status === 'logistics_review' || order.status === 'waiting_delivery_payment') && (
+                        {(order.status === 'arrived_warehouse' || order.status === 'logistics_review' || order.status === 'waiting_delivery_payment' || order.status === 'waiting_payment') && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#f59e0b', background: 'rgba(245, 158, 11, 0.05)', padding: '12px', borderRadius: '10px' }}>
                                 <Info size={16} />
                                 <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>

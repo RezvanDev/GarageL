@@ -12,7 +12,7 @@ export const AdminPayments = () => {
 
     const fetchOrders = async () => {
         try {
-            const allStatuses = 'offer_selected,waiting_delivery_payment,paid_product,delivery_paid,shipped_to_uzbekistan,delivered';
+            const allStatuses = 'offer_selected,waiting_delivery_payment,waiting_payment,cancelled,paid_product,delivery_paid,shipped_to_uzbekistan,delivered';
             const res = await api.orders.getByStatus(allStatuses);
             setOrders(res?.data?.orders || []);
         } catch (err) {
@@ -39,8 +39,8 @@ export const AdminPayments = () => {
 
     if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}><Loader2 className="spinner" /></div>;
 
-    const productPayments = orders.filter(o => o.status === 'offer_selected');
-    const deliveryPayments = orders.filter(o => o.status === 'waiting_delivery_payment');
+    const productPayments = orders.filter(o => o.status === 'offer_selected' || (o.status === 'waiting_payment' && !o.shipping_price));
+    const deliveryPayments = orders.filter(o => o.status === 'waiting_delivery_payment' || (o.status === 'waiting_payment' && o.shipping_price));
     const paymentHistory = orders.filter(o => ['paid_product', 'delivery_paid', 'shipped_to_uzbekistan', 'delivered'].includes(o.status));
 
     const formatDate = (dateStr) => {

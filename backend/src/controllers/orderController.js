@@ -561,15 +561,27 @@ exports.getPaymentLink = async (req, res, next) => {
         }
 
         // Verify status
-        if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+        if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment' && order.status !== 'waiting_payment') {
             return next(new AppError('Этот заказ в данный момент не ожидает оплаты', 400));
         }
 
         let amount;
         if (order.status === 'offer_selected') {
             amount = Math.round(parseFloat(order.price) * 100);
-        } else {
+        } else if (order.status === 'waiting_delivery_payment') {
             amount = Math.round(parseFloat(order.shipping_price) * 100);
+        } else {
+            // order.status === 'waiting_payment'
+            // Check if there is already a performed transaction for this order
+            const performedTxRes = await db.query(
+                'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2',
+                [order.id]
+            );
+            if (performedTxRes.rows.length > 0) {
+                amount = Math.round(parseFloat(order.shipping_price) * 100);
+            } else {
+                amount = Math.round(parseFloat(order.price) * 100);
+            }
         }
 
         const merchantId = process.env.PAYME_MERCHANT_ID || '587f72c72cac0d162c722ae2';

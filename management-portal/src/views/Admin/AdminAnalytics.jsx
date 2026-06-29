@@ -66,6 +66,7 @@ export const AdminAnalytics = () => {
 
     const formatStatus = (status) => {
         switch (status) {
+            case 'waiting_payment': return 'Ожидает оплаты';
             case 'paid_product': return 'Оплачен клиентом';
             case 'shipped_by_seller': return 'Отправлен продавцом';
             case 'logistics_review': return 'На замере логиста';
@@ -73,6 +74,7 @@ export const AdminAnalytics = () => {
             case 'delivery_paid': return 'Доставка оплачена';
             case 'shipped_to_uzbekistan': return 'В пути в Ташкент';
             case 'delivered': return 'Доставлен';
+            case 'cancelled': return 'Отменен';
             default: return status;
         }
     };

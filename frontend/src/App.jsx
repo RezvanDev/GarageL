@@ -360,7 +360,7 @@ export default function App() {
               </div>
             )}
 
-            {selectedOrder.status === 'offer_selected' && (
+            {(selectedOrder.status === 'offer_selected' || (selectedOrder.status === 'waiting_payment' && !selectedOrder.shipping_price)) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ padding: '15px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', textAlign: 'center', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                   <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Сумма к оплате за товар:</p>
@@ -463,7 +463,7 @@ export default function App() {
               </div>
             )}
 
-            {selectedOrder.status === 'waiting_delivery_payment' && (
+            {(selectedOrder.status === 'waiting_delivery_payment' || (selectedOrder.status === 'waiting_payment' && selectedOrder.shipping_price)) && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '12px' }}>
                   <h4 style={{ marginBottom: '10px' }}>Товар на складе в Китае 🇨🇳</h4>
