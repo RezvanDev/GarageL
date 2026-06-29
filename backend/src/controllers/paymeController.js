@@ -95,19 +95,15 @@ async function handleCheckPerform(params, id, res) {
 
 // Helper to check status eligibility and amount
 function verifyOrderEligibility(order, amountInTiyins) {
-    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
-        return {
-            allow: false,
-            errorCode: -31052,
-            errorMessage: 'Статус заказа не допускает оплату'
-        };
+    let expectedAmount;
+    if (order.status === 'waiting_delivery_payment') {
+        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
+    } else {
+        expectedAmount = Math.round(parseFloat(order.price) * 100);
     }
 
-    let expectedAmount;
-    if (order.status === 'offer_selected') {
-        expectedAmount = Math.round(parseFloat(order.price) * 100);
-    } else {
-        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
+    if (isNaN(expectedAmount)) {
+        expectedAmount = 0;
     }
 
     if (Math.abs(expectedAmount - amountInTiyins) > 1) { // allow 1 tiyin rounding difference
@@ -115,6 +111,14 @@ function verifyOrderEligibility(order, amountInTiyins) {
             allow: false,
             errorCode: -31001,
             errorMessage: 'Неверная сумма платежа'
+        };
+    }
+
+    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+        return {
+            allow: false,
+            errorCode: -31052,
+            errorMessage: 'Статус заказа не допускает оплату'
         };
     }
 
@@ -140,6 +144,11 @@ async function handleCreateTransaction(params, id, res) {
     const existingTx = txRes.rows[0];
 
     if (existingTx) {
+        // If transaction exists, check if details match
+        if (Number(existingTx.amount) !== Number(amount)) {
+            return respondError(res, id, -31001, 'Неверная сумма платежа');
+        }
+
         // If transaction exists, check state
         if (existingTx.state === STATE_CREATED) {
             // Check timeout
