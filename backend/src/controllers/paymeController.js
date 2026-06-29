@@ -65,12 +65,18 @@ function respondSuccess(res, id, result) {
 
 // Helper: respond JSON-RPC error
 function respondError(res, id, code, message, data = null) {
+    const errorMsg = (typeof message === 'string' && code >= -31999 && code <= -31000) ? {
+        ru: message,
+        uz: message,
+        en: message
+    } : message;
+
     return res.status(200).json({
         jsonrpc: '2.0',
         id,
         error: {
             code,
-            message,
+            message: errorMsg,
             ...(data ? { data } : {})
         }
     });
@@ -123,7 +129,7 @@ function buildReceiptDetail(order, amountInTiyins) {
 // Handler: CheckPerformTransaction
 async function handleCheckPerform(params, id, res) {
     const { amount, account } = params;
-    const orderId = account ? account.order_id : null;
+    const orderId = account ? Number(account.order_id) : null;
 
     if (!orderId) {
         return respondError(res, id, -31050, 'order_id is required', 'order_id');
@@ -132,6 +138,26 @@ async function handleCheckPerform(params, id, res) {
     const order = await Order.getById(orderId);
     if (!order) {
         return respondError(res, id, -31050, 'Заказ не найден', 'order_id');
+    }
+
+    // Check transaction state in payme_transactions table to handle "Обрабатывается" and "Заблокирован"
+    try {
+        const txRes = await db.query(
+            'SELECT * FROM payme_transactions WHERE order_id = $1 ORDER BY time DESC LIMIT 1',
+            [orderId]
+        );
+        const lastTx = txRes.rows[0];
+
+        if (lastTx) {
+            if (lastTx.state === STATE_CREATED) {
+                return respondError(res, id, -31099, 'Another transaction is pending for this order', 'order_id');
+            }
+            if (lastTx.state === STATE_PERFORMED) {
+                return respondError(res, id, -31052, 'Order is already paid', 'order_id');
+            }
+        }
+    } catch (err) {
+        console.error('Payme CheckPerformTransaction database check error:', err);
     }
 
     // Verify order status eligibility and amount
