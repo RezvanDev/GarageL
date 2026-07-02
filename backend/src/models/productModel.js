@@ -52,13 +52,18 @@ class Product {
     }
 
     static async update(id, data) {
+        const allowedFields = [
+            'brand', 'model', 'name', 'code', 'price', 
+            'description', 'image_url', 'supplier_id', 
+            'supplier_price', 'is_approved', 'quantity'
+        ];
         const fields = [];
         const params = [id];
         let i = 2;
 
         for (const [key, value] of Object.entries(data)) {
-            if (value !== undefined) {
-                fields.push(`${key} = $${i++}`);
+            if (value !== undefined && allowedFields.includes(key)) {
+                fields.push(`"${key}" = $${i++}`);
                 params.push(value);
             }
         }

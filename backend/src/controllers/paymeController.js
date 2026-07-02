@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const db = require('../db');
 const Order = require('../models/orderModel');
 const telegramService = require('../services/telegramService');
@@ -23,9 +24,29 @@ exports.handleBilling = async (req, res, next) => {
 
         const token = authHeader.split(' ')[1];
         const decoded = Buffer.from(token, 'base64').toString('ascii');
-        const [username, password] = decoded.split(':');
+        
+        if (!decoded.includes(':')) {
+            return respondError(res, req.body.id, -32504, 'Insufficient privilege');
+        }
 
-        if (password !== process.env.PAYME_KEY) {
+        const [username, password] = decoded.split(':');
+        const paymeKey = process.env.PAYME_KEY;
+
+        // Verify that PAYME_KEY is defined and non-empty
+        if (!paymeKey || paymeKey.trim() === '') {
+            console.error('CRITICAL: PAYME_KEY environment variable is missing or empty!');
+            return respondError(res, req.body.id, -32504, 'Insufficient privilege');
+        }
+
+        // Timing-safe comparison to prevent timing attacks
+        if (typeof password !== 'string' || password.length !== paymeKey.length) {
+            return respondError(res, req.body.id, -32504, 'Insufficient privilege');
+        }
+
+        const passwordBuf = Buffer.from(password);
+        const keyBuf = Buffer.from(paymeKey);
+
+        if (!crypto.timingSafeEqual(passwordBuf, keyBuf)) {
             return respondError(res, req.body.id, -32504, 'Insufficient privilege');
         }
 
@@ -44,8 +65,6 @@ exports.handleBilling = async (req, res, next) => {
                 return await handleCheckTransaction(params, id, res);
             case 'GetStatement':
                 return await handleGetStatement(params, id, res);
-            case 'ChangePassword':
-                return await handleChangePassword(params, id, res);
             default:
                 return respondError(res, id, -32601, 'Method not found');
         }
@@ -478,33 +497,4 @@ async function handleGetStatement(params, id, res) {
     }
 }
 
-// Handler: ChangePassword
-async function handleChangePassword(params, id, res) {
-    const { password } = params;
-    if (!password) {
-        return respondError(res, id, -32600, 'Password is required');
-    }
 
-    try {
-        const envPath = path.join(__dirname, '../../.env');
-        let envContent = '';
-        if (fs.existsSync(envPath)) {
-            envContent = fs.readFileSync(envPath, 'utf8');
-        }
-
-        let updatedEnv = '';
-        if (envContent.includes('PAYME_KEY=')) {
-            updatedEnv = envContent.replace(/PAYME_KEY=([^ \r\n]*)/, `PAYME_KEY=${password}`);
-        } else {
-            updatedEnv = envContent + `\nPAYME_KEY=${password}`;
-        }
-
-        fs.writeFileSync(envPath, updatedEnv, 'utf8');
-        process.env.PAYME_KEY = password;
-
-        return respondSuccess(res, id, { success: true });
-    } catch (err) {
-        console.error('Failed to change Payme key:', err);
-        return respondError(res, id, -32400, 'System error during password change');
-    }
-}

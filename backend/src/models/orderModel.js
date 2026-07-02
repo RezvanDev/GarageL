@@ -65,13 +65,20 @@ class Order {
     }
 
     static async update(id, data) {
+        const allowedFields = [
+            'client_id', 'item_name', 'car_info', 'description', 'photo_url', 
+            'car_brand', 'year', 'quantity', 'product_id', 'supplier_id', 
+            'price', 'supplier_price', 'status', 'delivery_method', 'category',
+            'track_number', 'weight', 'dimensions', 'shipping_price', 
+            'logist_shipping_price', 'warehouse_photo_url', 'shipping_track_number'
+        ];
         const fields = [];
         const params = [id];
         let i = 2;
 
         for (const [key, value] of Object.entries(data)) {
-            if (value !== undefined) {
-                fields.push(`${key} = $${i++}`);
+            if (value !== undefined && allowedFields.includes(key)) {
+                fields.push(`"${key}" = $${i++}`);
                 params.push(value);
             }
         }

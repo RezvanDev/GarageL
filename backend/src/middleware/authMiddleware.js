@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { query } = require('../db');
+const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 
 exports.protect = async (req, res, next) => {
@@ -17,14 +17,18 @@ exports.protect = async (req, res, next) => {
         // 2) Verification token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // 3) Grant access directly from JWT payload (role, allowedBrands, logisticsType)
-        req.user = {
-            id: decoded.id,
-            role: decoded.role,
-            allowed_brands: decoded.allowedBrands || [],
-            allowed_categories: decoded.allowedCategories || [],
-            logistics_type: decoded.logisticsType || null
-        };
+        // 3) Check if user still exists and has fresh permissions
+        const currentUser = await User.findById(decoded.id);
+        if (!currentUser) {
+            return next(new AppError('The user belonging to this token no longer exists.', 401));
+        }
+
+        // 4) Grant access from the fresh database state
+        req.user = currentUser;
+        req.user.allowed_brands = req.user.allowed_brands || [];
+        req.user.allowed_categories = req.user.allowed_categories || [];
+        req.user.logistics_type = req.user.logistics_type || null;
+
         next();
     } catch (err) {
         next(new AppError('Invalid token. Please log in again.', 401));
