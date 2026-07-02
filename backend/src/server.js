@@ -19,6 +19,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5001;
 
 // 1) MIDDLEWARES
@@ -83,7 +84,6 @@ const authLimiter = rateLimit({
 
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/register', authLimiter);
-app.use('/api/v1/payment/payme', authLimiter);
 
 
 // Serve static files

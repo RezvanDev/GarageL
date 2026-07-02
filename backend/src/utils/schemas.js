@@ -27,7 +27,7 @@ const registerSchema = z.object({
         role: z.enum(['client', 'supplier', 'logist', 'admin']).optional(),
         allowedBrands: z.array(z.string()).optional(),
         allowedCategories: z.array(z.string()).optional(),
-        logisticsType: z.enum(['air', 'ground']).nullable().optional(),
+        logisticsType: z.enum(['air', 'truck']).nullable().optional(),
     }),
 });
 
@@ -46,7 +46,7 @@ const updateRoleSchema = z.object({
         role: z.enum(['client', 'supplier', 'logist', 'admin']),
         allowedBrands: z.array(z.string()).nullable().optional(),
         allowedCategories: z.array(z.string()).nullable().optional(),
-        logisticsType: z.enum(['air', 'ground']).nullable().optional(),
+        logisticsType: z.enum(['air', 'truck']).nullable().optional(),
     }),
 });
 
@@ -101,7 +101,7 @@ const updateProductSchema = z.object({
 const createOrderSchema = z.object({
     body: z.object({
         productId: coercedInt.optional(),
-        deliveryMethod: z.enum(['air', 'ground']).optional(),
+        deliveryMethod: z.enum(['air', 'truck']).optional(),
         itemName: z.string().max(200).optional(),
         carInfo: z.string().max(200).optional(),
         description: z.string().max(1000).optional(),
