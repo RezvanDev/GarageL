@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const rateLimit = require('express-rate-limit');
 const globalErrorHandler = require('./middleware/errorMiddleware');
 const AppError = require('./utils/appError');
 const authRoutes = require('./routes/authRoutes');
@@ -36,9 +37,23 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
 
+        let originHostname;
+        try {
+            originHostname = new URL(origin).hostname;
+        } catch (e) {
+            originHostname = '';
+        }
+
+        const isNgrokAllowed = process.env.NODE_ENV !== 'production' && (
+            originHostname.endsWith('.ngrok-free.app') || 
+            originHostname === 'ngrok-free.app' ||
+            originHostname.endsWith('.ngrok.io') ||
+            originHostname === 'ngrok.io'
+        );
+
         if (
             allowedOrigins.includes(origin) ||
-            origin.includes('ngrok-free.app') ||
+            isNgrokAllowed ||
             (process.env.ALLOWED_ORIGIN && origin.includes(new URL(process.env.ALLOWED_ORIGIN).hostname))
         ) {
             callback(null, true);
@@ -51,7 +66,25 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
     credentials: true
 }));
+
 app.use(express.json());
+
+// Setup rate limiter for public sensitive routes
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // Limit each IP to 100 requests per windowMs
+    message: {
+        status: 'fail',
+        message: 'Too many requests from this IP, please try again after 15 minutes.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+app.use('/api/v1/auth/login', authLimiter);
+app.use('/api/v1/auth/register', authLimiter);
+app.use('/api/v1/payment/payme', authLimiter);
+
 
 // Serve static files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads'))); // Added

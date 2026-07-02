@@ -1,18 +1,20 @@
 const express = require('express');
 const orderController = require('../controllers/orderController');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
+const validate = require('../middleware/validationMiddleware');
+const { createOrderSchema, respondToOrderSchema, receiveAtWarehouseSchema } = require('../utils/schemas');
 
 const router = express.Router();
 
 // All order routes are protected
 router.use(protect);
 
-router.post('/', orderController.createOrder);
+router.post('/', validate(createOrderSchema), orderController.createOrder);
 router.get('/my', orderController.getMyOrders);
 
 // Supplier/Admin
 router.get('/pending', orderController.getPendingOrders);
-router.post('/respond', orderController.respondToOrder);
+router.post('/respond', validate(respondToOrderSchema), orderController.respondToOrder);
 
 // Client specific
 router.get('/:id/offers', orderController.getOrderOffers);
@@ -27,7 +29,7 @@ router.get('/admin/analytics', restrictTo('admin'), orderController.getAdminAnal
 router.post('/select-offer', orderController.selectOffer);
 router.patch('/:orderId/confirm-product-payment', restrictTo('admin'), orderController.confirmProductPayment);
 router.patch('/update-track', restrictTo('supplier', 'admin'), orderController.updateTrackNumber);
-router.patch('/receive-warehouse', restrictTo('logist', 'admin'), orderController.receiveAtWarehouse);
+router.patch('/receive-warehouse', restrictTo('logist', 'admin'), validate(receiveAtWarehouseSchema), orderController.receiveAtWarehouse);
 router.patch('/approve-logistics', restrictTo('admin'), orderController.approveLogistics);
 router.patch('/:orderId/confirm-delivery-payment', restrictTo('admin'), orderController.confirmDeliveryPayment);
 router.patch('/ship-to-uz', restrictTo('logist', 'admin'), orderController.shipToUzbekistan);
@@ -36,3 +38,4 @@ router.get('/by-status', restrictTo('admin', 'logist', 'supplier'), orderControl
 router.get('/logistics-stats', restrictTo('admin', 'logist'), orderController.getLogisticsStats);
 
 module.exports = router;
+

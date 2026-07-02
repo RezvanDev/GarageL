@@ -196,248 +196,324 @@ async function handleCreateTransaction(params, id, res) {
         return respondError(res, id, -31050, 'ID заказа не указан', 'order_id');
     }
 
-    // 1) Verify if transaction already exists in DB
-    const txRes = await db.query('SELECT * FROM payme_transactions WHERE id = $1', [paymeTxId]);
-    const existingTx = txRes.rows[0];
+    const client = await db.pool.connect();
+    try {
+        await client.query('BEGIN');
 
-    if (existingTx) {
-        if (Number(existingTx.amount) !== Number(amount)) {
+        // 1) Verify if transaction already exists in DB
+        const txRes = await client.query('SELECT * FROM payme_transactions WHERE id = $1', [paymeTxId]);
+        const existingTx = txRes.rows[0];
+
+        if (existingTx) {
+            if (Number(existingTx.amount) !== Number(amount)) {
+                await client.query('ROLLBACK');
+                return respondError(res, id, -31001, 'Неверная сумма платежа');
+            }
+
+            if (Number(existingTx.state) === STATE_CREATED) {
+                const now = Date.now();
+                if (now - Number(existingTx.create_time) > TRANSACTION_TIMEOUT) {
+                    await client.query(
+                        'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
+                        [STATE_CANCELLED_BEFORE_PAY, now, paymeTxId]
+                    );
+                    
+                    const orderRes = await client.query(
+                        'SELECT o.*, u.name as client_name, u.user_code FROM orders o JOIN users u ON o.client_id = u.id WHERE o.id = $1',
+                        [existingTx.order_id]
+                    );
+                    const order = orderRes.rows[0];
+                    if (order && order.status === 'waiting_payment') {
+                        const performedTxRes = await client.query(
+                            'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2',
+                            [order.id]
+                        );
+                        const hasPaidProduct = performedTxRes.rows.length > 0;
+                        const revertedStatus = hasPaidProduct ? 'waiting_delivery_payment' : 'offer_selected';
+                        await client.query('UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [revertedStatus, order.id]);
+                    }
+
+                    await client.query('COMMIT');
+                    return respondError(res, id, -31008, 'Время ожидания транзакции истекло');
+                }
+
+                await client.query('COMMIT');
+                return respondSuccess(res, id, {
+                    create_time: Number(existingTx.create_time),
+                    transaction: existingTx.id,
+                    state: 1,
+                    receivers: null
+                });
+            } else {
+                await client.query('ROLLBACK');
+                return respondError(res, id, -31008, 'Транзакция не активна');
+            }
+        }
+
+        // 2) Verify order eligibility
+        const orderRes = await client.query(
+            'SELECT o.*, u.name as client_name, u.user_code FROM orders o JOIN users u ON o.client_id = u.id WHERE o.id = $1',
+            [orderId]
+        );
+        const order = orderRes.rows[0];
+        if (!order) {
+            await client.query('ROLLBACK');
+            return respondError(res, id, -31050, 'Заказ не найден', 'order_id');
+        }
+
+        if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
+            await client.query('ROLLBACK');
+            return respondError(res, id, -31052, 'Заказ недоступен для оплаты', 'order_id');
+        }
+
+        // Verify amount matching
+        let expectedAmount;
+        if (order.status === 'waiting_delivery_payment') {
+            expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
+        } else {
+            expectedAmount = Math.round(parseFloat(order.price) * 100);
+        }
+
+        if (isNaN(expectedAmount) || expectedAmount <= 0) {
+            expectedAmount = 0;
+        }
+
+        if (Number(amount) !== expectedAmount) {
+            await client.query('ROLLBACK');
             return respondError(res, id, -31001, 'Неверная сумма платежа');
         }
 
-        if (Number(existingTx.state) === STATE_CREATED) {
-            const now = Date.now();
-            if (now - Number(existingTx.create_time) > TRANSACTION_TIMEOUT) {
-                await db.query(
-                    'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
-                    [STATE_CANCELLED_BEFORE_PAY, now, paymeTxId]
-                );
-                
-                const order = await Order.getById(existingTx.order_id);
-                if (order && order.status === 'waiting_payment') {
-                    const performedTxRes = await db.query(
-                        'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2',
-                        [order.id]
-                    );
-                    const hasPaidProduct = performedTxRes.rows.length > 0;
-                    const revertedStatus = hasPaidProduct ? 'waiting_delivery_payment' : 'offer_selected';
-                    await Order.update(order.id, { status: revertedStatus });
-                }
-
-                return respondError(res, id, -31008, 'Время ожидания транзакции истекло');
-            }
-
-            return respondSuccess(res, id, {
-                create_time: Number(existingTx.create_time),
-                transaction: existingTx.id,
-                state: 1,
-                receivers: null
-            });
-        } else {
-            return respondError(res, id, -31008, 'Транзакция не активна');
+        // 3) Verify if there is already another active transaction for this order
+        const activeTxRes = await client.query(
+            'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = $2',
+            [orderId, STATE_CREATED]
+        );
+        if (activeTxRes.rows.length > 0) {
+            await client.query('ROLLBACK');
+            return respondError(res, id, -31099, 'Для данного заказа уже есть активная транзакция', 'order_id');
         }
+
+        // 4) Create new transaction in DB
+        const now = Date.now();
+        await client.query(
+            `INSERT INTO payme_transactions (id, time, state, amount, order_id, create_time) 
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [paymeTxId, time, STATE_CREATED, amount, orderId, now]
+        );
+
+        // Update order status to waiting_payment
+        await client.query('UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', ['waiting_payment', orderId]);
+
+        await client.query('COMMIT');
+
+        return respondSuccess(res, id, {
+            create_time: now,
+            transaction: paymeTxId,
+            state: STATE_CREATED,
+            receivers: null
+        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('handleCreateTransaction transaction error:', err);
+        return respondError(res, id, -32603, 'Internal error');
+    } finally {
+        client.release();
     }
-
-    // 2) Verify order eligibility
-    const order = await Order.getById(orderId);
-    if (!order) {
-        return respondError(res, id, -31050, 'Заказ не найден', 'order_id');
-    }
-
-    if (order.status !== 'offer_selected' && order.status !== 'waiting_delivery_payment') {
-        return respondError(res, id, -31052, 'Заказ недоступен для оплаты', 'order_id');
-    }
-
-    // Verify amount matching
-    let expectedAmount;
-    if (order.status === 'waiting_delivery_payment') {
-        expectedAmount = Math.round(parseFloat(order.shipping_price) * 100);
-    } else {
-        expectedAmount = Math.round(parseFloat(order.price) * 100);
-    }
-
-    if (isNaN(expectedAmount) || expectedAmount <= 0) {
-        expectedAmount = 0;
-    }
-
-    if (Number(amount) !== expectedAmount) {
-        return respondError(res, id, -31001, 'Неверная сумма платежа');
-    }
-
-    // 3) Verify if there is already another active transaction for this order
-    const activeTxRes = await db.query(
-        'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = $2',
-        [orderId, STATE_CREATED]
-    );
-    if (activeTxRes.rows.length > 0) {
-        return respondError(res, id, -31099, 'Для данного заказа уже есть активная транзакция', 'order_id');
-    }
-
-    // 4) Create new transaction in DB
-    const now = Date.now();
-    await db.query(
-        `INSERT INTO payme_transactions (id, time, state, amount, order_id, create_time) 
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [paymeTxId, time, STATE_CREATED, amount, orderId, now]
-    );
-
-    // Update order status to waiting_payment
-    await Order.update(orderId, { status: 'waiting_payment' });
-
-    return respondSuccess(res, id, {
-        create_time: now,
-        transaction: paymeTxId,
-        state: STATE_CREATED,
-        receivers: null
-    });
 }
 
 // Handler: PerformTransaction
 async function handlePerformTransaction(params, id, res) {
     const { id: paymeTxId } = params;
+    const client = await db.pool.connect();
 
-    const txRes = await db.query('SELECT * FROM payme_transactions WHERE id = $1', [paymeTxId]);
-    const tx = txRes.rows[0];
+    try {
+        await client.query('BEGIN');
 
-    if (!tx) {
-        return respondError(res, id, -31003, 'Транзакция не найдена');
-    }
+        const txRes = await client.query('SELECT * FROM payme_transactions WHERE id = $1', [paymeTxId]);
+        const tx = txRes.rows[0];
 
-    const now = Date.now();
+        if (!tx) {
+            await client.query('ROLLBACK');
+            return respondError(res, id, -31003, 'Транзакция не найдена');
+        }
 
-    if (Number(tx.state) === STATE_CREATED) {
-        if (now - Number(tx.create_time) > TRANSACTION_TIMEOUT) {
-            await db.query(
-                'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
-                [STATE_CANCELLED_BEFORE_PAY, now, paymeTxId]
-            );
+        const now = Date.now();
 
-            const order = await Order.getById(tx.order_id);
-            if (order && order.status === 'waiting_payment') {
-                const performedTxRes = await db.query(
-                    'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2',
-                    [order.id]
+        if (Number(tx.state) === STATE_CREATED) {
+            if (now - Number(tx.create_time) > TRANSACTION_TIMEOUT) {
+                await client.query(
+                    'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = 4 WHERE id = $3',
+                    [STATE_CANCELLED_BEFORE_PAY, now, paymeTxId]
                 );
-                const hasPaidProduct = performedTxRes.rows.length > 0;
-                const revertedStatus = hasPaidProduct ? 'waiting_delivery_payment' : 'offer_selected';
-                await Order.update(order.id, { status: revertedStatus });
-            }
 
-            return respondError(res, id, -31008, 'Время ожидания транзакции истекло');
-        }
-
-        await db.query(
-            'UPDATE payme_transactions SET state = $1, perform_time = $2 WHERE id = $3',
-            [STATE_PERFORMED, now, paymeTxId]
-        );
-
-        // Update corresponding order status and notify via Telegram
-        const order = await Order.getById(tx.order_id);
-        if (order) {
-            const performedTxRes = await db.query(
-                'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2 AND id != $2',
-                [tx.order_id, paymeTxId]
-            );
-            const isDeliveryPayment = performedTxRes.rows.length > 0;
-
-            if (isDeliveryPayment) {
-                await Order.update(order.id, { status: 'delivery_paid' });
-                telegramService.notifyOrderUpdate(order.id, 'delivery_paid').catch(err => console.error(err));
-                telegramService.notifyLogistsReadyToShip(order.id).catch(err => console.error(err));
-            } else {
-                await Order.update(order.id, { status: 'paid_product' });
-                if (order.product_id) {
-                    const orderQty = order.quantity || 1;
-                    await db.query(
-                        'UPDATE products SET quantity = GREATEST(0, quantity - $1) WHERE id = $2',
-                        [orderQty, order.product_id]
+                const orderRes = await client.query(
+                    'SELECT o.*, u.name as client_name, u.user_code FROM orders o JOIN users u ON o.client_id = u.id WHERE o.id = $1',
+                    [tx.order_id]
+                );
+                const order = orderRes.rows[0];
+                if (order && order.status === 'waiting_payment') {
+                    const performedTxRes = await client.query(
+                        'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2',
+                        [order.id]
                     );
+                    const hasPaidProduct = performedTxRes.rows.length > 0;
+                    const revertedStatus = hasPaidProduct ? 'waiting_delivery_payment' : 'offer_selected';
+                    await client.query('UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', [revertedStatus, order.id]);
                 }
-                telegramService.notifyOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
-                telegramService.notifySupplierOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
-            }
-        }
 
-        return respondSuccess(res, id, {
-            transaction: paymeTxId,
-            perform_time: now,
-            state: STATE_PERFORMED
-        });
-    } else if (Number(tx.state) === STATE_PERFORMED) {
-        return respondSuccess(res, id, {
-            transaction: paymeTxId,
-            perform_time: Number(tx.perform_time),
-            state: STATE_PERFORMED
-        });
-    } else {
-        return respondError(res, id, -31008, 'Невозможно провести отмененную транзакцию');
+                await client.query('COMMIT');
+                return respondError(res, id, -31008, 'Время ожидания транзакции истекло');
+            }
+
+            await client.query(
+                'UPDATE payme_transactions SET state = $1, perform_time = $2 WHERE id = $3',
+                [STATE_PERFORMED, now, paymeTxId]
+            );
+
+            // Update corresponding order status
+            const orderRes = await client.query(
+                'SELECT o.*, u.name as client_name, u.user_code FROM orders o JOIN users u ON o.client_id = u.id WHERE o.id = $1',
+                [tx.order_id]
+            );
+            const order = orderRes.rows[0];
+            if (order) {
+                const performedTxRes = await client.query(
+                    'SELECT * FROM payme_transactions WHERE order_id = $1 AND state = 2 AND id != $2',
+                    [tx.order_id, paymeTxId]
+                );
+                const isDeliveryPayment = performedTxRes.rows.length > 0;
+
+                if (isDeliveryPayment) {
+                    await client.query('UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', ['delivery_paid', order.id]);
+                    telegramService.notifyOrderUpdate(order.id, 'delivery_paid').catch(err => console.error(err));
+                    telegramService.notifyLogistsReadyToShip(order.id).catch(err => console.error(err));
+                } else {
+                    await client.query('UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', ['paid_product', order.id]);
+                    if (order.product_id) {
+                        const orderQty = order.quantity || 1;
+                        await client.query(
+                            'UPDATE products SET quantity = GREATEST(0, quantity - $1) WHERE id = $2',
+                            [orderQty, order.product_id]
+                        );
+                    }
+                    telegramService.notifyOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
+                    telegramService.notifySupplierOrderUpdate(order.id, 'paid_product').catch(err => console.error(err));
+                }
+            }
+
+            await client.query('COMMIT');
+
+            return respondSuccess(res, id, {
+                transaction: paymeTxId,
+                perform_time: now,
+                state: STATE_PERFORMED
+            });
+        } else if (Number(tx.state) === STATE_PERFORMED) {
+            await client.query('COMMIT');
+            return respondSuccess(res, id, {
+                transaction: paymeTxId,
+                perform_time: Number(tx.perform_time),
+                state: STATE_PERFORMED
+            });
+        } else {
+            await client.query('ROLLBACK');
+            return respondError(res, id, -31008, 'Невозможно провести отмененную транзакцию');
+        }
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('handlePerformTransaction transaction error:', err);
+        return respondError(res, id, -32603, 'Internal error');
+    } finally {
+        client.release();
     }
 }
 
 // Handler: CancelTransaction
 async function handleCancelTransaction(params, id, res) {
     const { id: paymeTxId, reason } = params;
+    const client = await db.pool.connect();
 
-    const txRes = await db.query('SELECT * FROM payme_transactions WHERE id = $1', [paymeTxId]);
-    const tx = txRes.rows[0];
+    try {
+        await client.query('BEGIN');
 
-    if (!tx) {
-        return respondError(res, id, -31003, 'Транзакция не найдена');
-    }
+        const txRes = await client.query('SELECT * FROM payme_transactions WHERE id = $1', [paymeTxId]);
+        const tx = txRes.rows[0];
 
-    const now = Date.now();
-    const order = await Order.getById(tx.order_id);
-
-    if (order) {
-        const nonCancellableStatuses = [
-            'shipped_by_seller', 'logistics_review', 
-            'shipped_to_uzbekistan', 'delivered'
-        ];
-        if (nonCancellableStatuses.includes(order.status)) {
-            return respondError(res, id, -31007, 'Невозможно отменить транзакцию, товар уже отправлен');
+        if (!tx) {
+            await client.query('ROLLBACK');
+            return respondError(res, id, -31003, 'Транзакция не найдена');
         }
-    }
 
-    const state = Number(tx.state);
-
-    if (state === STATE_CREATED) {
-        await db.query(
-            'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = $3 WHERE id = $4',
-            [STATE_CANCELLED_BEFORE_PAY, now, reason, paymeTxId]
+        const now = Date.now();
+        const orderRes = await client.query(
+            'SELECT o.*, u.name as client_name, u.user_code FROM orders o JOIN users u ON o.client_id = u.id WHERE o.id = $1',
+            [tx.order_id]
         );
+        const order = orderRes.rows[0];
 
         if (order) {
-            await Order.update(order.id, { status: 'cancelled' });
-            telegramService.notifyOrderUpdate(order.id, 'cancelled').catch(err => console.error(err));
+            const nonCancellableStatuses = [
+                'shipped_by_seller', 'logistics_review', 
+                'shipped_to_uzbekistan', 'delivered'
+            ];
+            if (nonCancellableStatuses.includes(order.status)) {
+                await client.query('ROLLBACK');
+                return respondError(res, id, -31007, 'Невозможно отменить транзакцию, товар уже отправлен');
+            }
         }
 
-        return respondSuccess(res, id, {
-            transaction: paymeTxId,
-            cancel_time: now,
-            state: STATE_CANCELLED_BEFORE_PAY
-        });
-    } else if (state === STATE_PERFORMED) {
-        await db.query(
-            'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = $3 WHERE id = $4',
-            [STATE_CANCELLED_AFTER_PAY, now, reason, paymeTxId]
-        );
+        const state = Number(tx.state);
 
-        if (order) {
-            await Order.update(order.id, { status: 'cancelled' });
-            telegramService.notifyOrderUpdate(order.id, 'cancelled').catch(err => console.error(err));
+        if (state === STATE_CREATED) {
+            await client.query(
+                'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = $3 WHERE id = $4',
+                [STATE_CANCELLED_BEFORE_PAY, now, reason, paymeTxId]
+            );
+
+            if (order) {
+                await client.query('UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', ['cancelled', order.id]);
+                telegramService.notifyOrderUpdate(order.id, 'cancelled').catch(err => console.error(err));
+            }
+
+            await client.query('COMMIT');
+
+            return respondSuccess(res, id, {
+                transaction: paymeTxId,
+                cancel_time: now,
+                state: STATE_CANCELLED_BEFORE_PAY
+            });
+        } else if (state === STATE_PERFORMED) {
+            await client.query(
+                'UPDATE payme_transactions SET state = $1, cancel_time = $2, reason = $3 WHERE id = $4',
+                [STATE_CANCELLED_AFTER_PAY, now, reason, paymeTxId]
+            );
+
+            if (order) {
+                await client.query('UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2', ['cancelled', order.id]);
+                telegramService.notifyOrderUpdate(order.id, 'cancelled').catch(err => console.error(err));
+            }
+
+            await client.query('COMMIT');
+
+            return respondSuccess(res, id, {
+                transaction: paymeTxId,
+                cancel_time: now,
+                state: STATE_CANCELLED_AFTER_PAY
+            });
+        } else {
+            await client.query('COMMIT');
+            return respondSuccess(res, id, {
+                transaction: paymeTxId,
+                cancel_time: Number(tx.cancel_time),
+                state: Number(tx.state)
+            });
         }
-
-        return respondSuccess(res, id, {
-            transaction: paymeTxId,
-            cancel_time: now,
-            state: STATE_CANCELLED_AFTER_PAY
-        });
-    } else {
-        return respondSuccess(res, id, {
-            transaction: paymeTxId,
-            cancel_time: Number(tx.cancel_time),
-            state: Number(tx.state)
-        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('handleCancelTransaction transaction error:', err);
+        return respondError(res, id, -32603, 'Internal error');
+    } finally {
+        client.release();
     }
 }
 

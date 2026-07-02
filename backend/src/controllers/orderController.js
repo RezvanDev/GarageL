@@ -314,19 +314,41 @@ exports.confirmProductPayment = async (req, res, next) => {
         if (req.user.role !== 'admin') return next(new AppError('Admin only', 403));
         const { orderId } = req.params;
 
-        const order = await Order.getById(orderId);
-        if (order && order.status !== 'paid_product') {
-            await Order.update(orderId, { status: 'paid_product' });
-            if (order.product_id) {
-                const orderQty = order.quantity || 1;
-                await db.query(
-                    'UPDATE products SET quantity = GREATEST(0, quantity - $1) WHERE id = $2',
-                    [orderQty, order.product_id]
+        const client = await db.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const orderRes = await client.query(
+                'SELECT o.*, u.name as client_name, u.user_code FROM orders o JOIN users u ON o.client_id = u.id WHERE o.id = $1',
+                [orderId]
+            );
+            const order = orderRes.rows[0];
+
+            if (order && order.status !== 'paid_product') {
+                await client.query(
+                    "UPDATE orders SET status = 'paid_product', updated_at = CURRENT_TIMESTAMP WHERE id = $1",
+                    [orderId]
                 );
+                if (order.product_id) {
+                    const orderQty = order.quantity || 1;
+                    await client.query(
+                        'UPDATE products SET quantity = GREATEST(0, quantity - $1) WHERE id = $2',
+                        [orderQty, order.product_id]
+                    );
+                }
+                await client.query('COMMIT');
+                telegramService.notifyOrderUpdate(orderId, 'paid_product').catch(err => console.error(err));
+                telegramService.notifySupplierOrderUpdate(orderId, 'paid_product').catch(err => console.error(err));
+            } else {
+                await client.query('COMMIT');
             }
-            await telegramService.notifyOrderUpdate(orderId, 'paid_product');
-            await telegramService.notifySupplierOrderUpdate(orderId, 'paid_product');
+        } catch (err) {
+            await client.query('ROLLBACK');
+            throw err;
+        } finally {
+            client.release();
         }
+
         res.status(200).json({ status: 'success' });
     } catch (err) {
         next(err);
