@@ -34,7 +34,7 @@ export const Footer = () => (
         <div className="status-indicator">
             <span className="dot"></span>
             <a href="https://t.me/rezvanmax" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
-                Написать в тех поддержку
+                Написать в тех поддержку!
             </a>
         </div>
     </footer>
