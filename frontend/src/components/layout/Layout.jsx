@@ -11,7 +11,7 @@ export const Navbar = ({ currentView, onNavigate, user, onLogout }) => {
     return (
         <nav className="navbar glass">
             <div className="logo" onClick={() => onNavigate('dashboard')} style={{ cursor: 'pointer' }}>
-                <span className="accent">G</span>arage
+                <span className="accent">Tez</span>Parts
             </div>
             <ul className="nav-links">
                 {navItems.map(({ id, icon: Icon }) => (
