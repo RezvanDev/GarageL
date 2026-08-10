@@ -41,7 +41,7 @@ export const Auth = ({ onLogin, onRegister, isLoading, error }) => {
                         transition={{ delay: 0.2 }}
                     >
                         <h1 style={{ marginBottom: '10px', fontSize: '2.8rem', fontWeight: 900, letterSpacing: '-1.5px' }}>
-                            Garage <span className="accent-text">Pro</span>
+                            Tez <span className="accent-text">Parts</span>
                         </h1>
                         <p style={{ color: 'var(--text-dim)', fontSize: '1.1rem', fontWeight: 400 }}>
                             {isLogin ? 'Авторизация в систему' : 'Регистрация клиента'}

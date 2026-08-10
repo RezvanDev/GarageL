@@ -26,7 +26,7 @@ export const Login = ({ onLogin, error, loading }) => {
                 style={{ width: '100%', maxWidth: '400px' }}
             >
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                    <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Garage <span style={{ color: 'var(--accent-blue)' }}>Admin</span></h1>
+                    <h1 style={{ fontSize: '2rem', fontWeight: 800 }}>Tez Parts <span style={{ color: 'var(--accent-blue)' }}>Admin</span></h1>
                     <p style={{ color: 'var(--text-dim)', marginTop: '10px' }}>Вход для сотрудников</p>
                 </div>
 

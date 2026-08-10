@@ -24,7 +24,7 @@ const PortalSidebar = ({ user, onLogout, menuItems, theme }) => {
             {/* Logo */}
             <div style={{ marginBottom: '40px', padding: '0 10px' }}>
                 <h1 style={{ fontSize: '1.4rem', fontWeight: 800 }}>
-                    Garage{' '}
+                    Tez Parts{' '}
                     <span style={{ color: theme.accent }}>{theme.title}</span>
                 </h1>
                 <div style={{

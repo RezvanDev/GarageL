@@ -15,7 +15,7 @@ export const Sidebar = ({ user, onLogout, activeTab, onTabChange }) => {
         <aside className="sidebar">
             <div className="logo" style={{ marginBottom: '40px', padding: '0 10px' }}>
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>
-                    Garage <span style={{ color: 'var(--accent-blue)' }}>Admin</span>
+                    Tez Parts <span style={{ color: 'var(--accent-blue)' }}>Admin</span>
                 </h1>
             </div>
 

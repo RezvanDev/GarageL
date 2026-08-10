@@ -14,7 +14,7 @@ export const Dashboard = ({ onNavigate, user }) => {
         className="dashboard-container"
     >
         <div style={{ textAlign: 'center', marginBottom: '25px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <h1 style={{ fontSize: '1.5rem', marginBottom: '5px' }}>Добро пожаловать в <span className="accent-text">Garage</span></h1>
+            <h1 style={{ fontSize: '1.5rem', marginBottom: '5px' }}>Добро пожаловать в <span className="accent-text">Tez Parts</span></h1>
             <p style={{ color: 'var(--text-dim)', fontSize: '0.8rem', marginBottom: '15px' }}>Управляйте заказами и ищите запчасти</p>
             
             <button
