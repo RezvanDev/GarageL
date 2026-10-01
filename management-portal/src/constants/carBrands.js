@@ -4,7 +4,7 @@ export const CAR_BRANDS = {
     'Zeekr': ["001 2025","001 2026","007","X","007 GT","7X","009","9X"],
     'Voyah': ["Free c 2021","Free c 2023","Free c 2025","Taishan","Dream","Passion","Courage"],
     'BYD': ["ATTO 8","SEAL 6","SEALION 7","YUAN UP","SEAGULL","e2","CHAZOR Champion","SONG PRO DM-i Champion","SONG PLUS EV Champion","HAN"],
-    'BMW': ["1-Series","2-Series","3-Series","4-Series","5-Series","6-Series Gran Turismo","7-Series","iX1","iX3","X1","X2","X3","X4","X5","X6","X7"],
+    'BMW': ["1-Series","2-Series","3-Series","4-Series","5-Series","6-Series Gran Turismo","7-Series","i3","i4","i5","iX1","iX3","X1","X2","X3","X4","X5","X6","X7"],
     'Chery': ["TIGGO 7PRO","TIGGO 8 PRO-PRO MAX","TIGGO 2 PRO","ARIZZO 6 PRO","ARIZZO 8 HYBRID"],
     'Avatr': ["06","07","11","12"],
     'BAIC': ["BJ 30","BJ 40","BJ 60"],
